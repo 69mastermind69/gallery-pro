@@ -1,0 +1,664 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#090d1c">
+<title>Professional Video Editor | Gallery Pro by MASTERMIND</title>
+<link rel="manifest" href="./manifest.json">
+
+<style>
+:root {
+  color-scheme: dark;
+  --bg:#090d1c;
+  --panel:#11182b;
+  --border:#293451;
+  --text:#f4f6ff;
+  --muted:#9aa8c7;
+  --accent:#8564ff;
+}
+* { box-sizing:border-box }
+body {
+  margin:0;
+  background:radial-gradient(ellipse at top,#17234a,var(--bg) 60%);
+  color:var(--text);
+  font-family:system-ui,Arial,sans-serif;
+  min-height:100vh;
+}
+.app { max-width:1100px;margin:auto;padding:16px }
+header {
+  display:flex;justify-content:space-between;align-items:center;
+  gap:12px;flex-wrap:wrap;margin-bottom:18px
+}
+h1 { font-size:clamp(22px,4vw,30px);margin:0 }
+h2 { font-size:19px;margin-top:0 }
+.muted,.note { color:var(--muted);font-size:13px;line-height:1.6 }
+.panel {
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:18px;
+  padding:16px;
+  margin-bottom:16px
+}
+button,input,select { font:inherit }
+button {
+  padding:11px 14px;
+  color:var(--text);
+  background:#18213a;
+  border:1px solid var(--border);
+  border-radius:11px;
+  cursor:pointer
+}
+button:disabled { opacity:.45;cursor:not-allowed }
+.primary {
+  background:linear-gradient(110deg,#6653ed,#904dff);
+  border-color:transparent
+}
+.toolbar { display:flex;gap:9px;flex-wrap:wrap;margin:12px 0 }
+.toolbar button { flex:1 }
+.field {
+  width:100%;padding:10px;margin:7px 0 12px;
+  border:1px solid var(--border);border-radius:10px;
+  background:#0b1224;color:white
+}
+.video-wrap {
+  background:#03050a;border-radius:14px;
+  overflow:hidden;display:grid;place-items:center;
+  min-height:180px
+}
+video {
+  display:block;width:100%;max-height:60vh;
+  background:#03050a
+}
+.grid {
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px
+}
+.control {
+  background:#0b1224;border:1px solid var(--border);
+  border-radius:13px;padding:12px
+}
+label { display:block;font-size:13px;margin-bottom:6px }
+input[type=range] { width:100%;accent-color:#9272ff }
+.range-row {
+  display:flex;justify-content:space-between;
+  font-size:12px;color:var(--muted)
+}
+.check { display:flex;gap:8px;align-items:center;margin:10px 0 }
+.status {
+  padding:12px;border:1px solid #344165;
+  background:#101a32;border-radius:12px;
+  font-size:13px;overflow-wrap:anywhere;line-height:1.6
+}
+progress { width:100%;height:12px }
+footer { text-align:center;color:var(--muted);font-size:12px;padding:18px }
+@media(max-width:650px) {
+  .grid { grid-template-columns:1fr }
+  .app { padding:11px }
+}
+</style>
+</head>
+
+<body>
+<main class="app">
+
+<header>
+  <div>
+    <h1>🎬 Professional Video Editor</h1>
+    <div class="muted">Gallery Pro by MASTERMIND</div>
+  </div>
+  <button id="backBtn">← Gallery</button>
+</header>
+
+<section class="panel">
+  <h2>1. Choose Video</h2>
+  <p class="note">
+    Select a video from your device or load the latest video
+    saved inside Gallery Pro.
+  </p>
+
+  <input id="picker" class="field" type="file" accept="video/*">
+
+  <div class="video-wrap">
+    <video id="video" controls playsinline preload="metadata"></video>
+  </div>
+
+  <div class="toolbar">
+    <button id="galleryBtn">Load Gallery Video</button>
+    <button id="resetBtn">Reset Adjustments</button>
+  </div>
+
+  <div id="status" class="status">Choose a video to begin.</div>
+</section>
+
+<section class="panel">
+  <h2>2. Video Adjustments</h2>
+
+  <div class="grid">
+    <div class="control">
+      <label>Brightness: <span id="brightnessValue">100%</span></label>
+      <input id="brightness" type="range" min="0" max="200" value="100">
+      <div class="range-row"><span>0%</span><span>200%</span></div>
+    </div>
+
+    <div class="control">
+      <label>Contrast: <span id="contrastValue">100%</span></label>
+      <input id="contrast" type="range" min="0" max="200" value="100">
+      <div class="range-row"><span>0%</span><span>200%</span></div>
+    </div>
+
+    <div class="control">
+      <label>Saturation: <span id="saturationValue">100%</span></label>
+      <input id="saturation" type="range" min="0" max="200" value="100">
+      <div class="range-row"><span>0%</span><span>200%</span></div>
+    </div>
+
+    <div class="control">
+      <label>Speed: <span id="speedValue">1×</span></label>
+      <input id="speed" type="range" min="50" max="150" value="100">
+      <div class="range-row"><span>0.5×</span><span>1.5×</span></div>
+    </div>
+
+    <div class="control">
+      <label for="rotation">Rotation</label>
+      <select id="rotation" class="field">
+        <option value="0">0°</option>
+        <option value="90">90° clockwise</option>
+        <option value="180">180°</option>
+        <option value="270">270° clockwise</option>
+      </select>
+
+      <label class="check">
+        <input type="checkbox" id="mirror"> Mirror horizontally
+      </label>
+
+      <label class="check">
+        <input type="checkbox" id="mute"> Mute exported video
+      </label>
+    </div>
+
+    <div class="control">
+      <label for="trimStart">Trim start (seconds)</label>
+      <input id="trimStart" class="field" type="number" min="0" step="0.1" value="0">
+
+      <label for="trimEnd">Trim end (seconds)</label>
+      <input id="trimEnd" class="field" type="number" min="0" step="0.1" placeholder="Video end">
+    </div>
+  </div>
+
+  <p class="note">
+    Preview adjustments are applied immediately. Export renders the edited
+    video in real time, so long clips may take a while.
+  </p>
+</section>
+
+<section class="panel">
+  <h2>3. Export Video</h2>
+
+  <div class="toolbar">
+    <button id="exportBtn" class="primary">⚙ Render & Save to Gallery</button>
+    <button id="downloadBtn" disabled>⬇ Download Export</button>
+  </div>
+
+  <progress id="progress" max="100" value="0"></progress>
+  <div id="exportStatus" class="status" style="margin-top:12px">
+    Load a video to get started.
+  </div>
+</section>
+
+<canvas id="renderCanvas" hidden></canvas>
+
+<footer>
+  MASTERMIND · Gallery Pro · Video Editor
+</footer>
+</main>
+
+<script>
+"use strict";
+
+const DB_NAME = "MastermindGalleryDB";
+const DB_VERSION = 1;
+
+const $ = id => document.getElementById(id);
+const video = $("video");
+const canvas = $("renderCanvas");
+const ctx = canvas.getContext("2d");
+
+let db = null;
+let currentFile = null;
+let currentMediaId = null;
+let previewUrl = null;
+let lastExport = null;
+let rendering = false;
+
+function setStatus(message) {
+  $("status").textContent = message;
+}
+
+function setExportStatus(message) {
+  $("exportStatus").textContent = message;
+}
+
+function openDatabase() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+    request.onupgradeneeded = () => {
+      const database = request.result;
+
+      if (!database.objectStoreNames.contains("media")) {
+        const store = database.createObjectStore("media", {
+          keyPath: "id",
+          autoIncrement: true
+        });
+
+        store.createIndex("deleted", "deleted", { unique: false });
+        store.createIndex("createdAt", "createdAt", { unique: false });
+      }
+
+      if (!database.objectStoreNames.contains("albums")) {
+        database.createObjectStore("albums", {
+          keyPath: "id",
+          autoIncrement: true
+        });
+      }
+    };
+
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+function getAllMedia() {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction("media", "readonly");
+    const request = transaction.objectStore("media").getAll();
+
+    request.onsuccess = () => resolve(request.result || []);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+function addMedia(record) {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction("media", "readwrite");
+    const request = transaction.objectStore("media").add(record);
+
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+function loadVideo(blob, name, id = null) {
+  if (!blob) {
+    setStatus("Video data is unavailable.");
+    return;
+  }
+
+  if (previewUrl) URL.revokeObjectURL(previewUrl);
+
+  currentFile = new File([blob], name || "video.mp4", {
+    type: blob.type || "video/mp4"
+  });
+
+  currentMediaId = id;
+  previewUrl = URL.createObjectURL(blob);
+  video.src = previewUrl;
+  video.load();
+
+  setStatus("Loaded: " + currentFile.name);
+  setExportStatus("Video loaded. Adjust settings and export.");
+}
+
+$("picker").addEventListener("change", event => {
+  const file = event.target.files && event.target.files[0];
+
+  if (!file) return;
+
+  if (!file.type.startsWith("video/")) {
+    setStatus("Please choose a valid video file.");
+    return;
+  }
+
+  loadVideo(file, file.name);
+});
+
+$("galleryBtn").addEventListener("click", async () => {
+  try {
+    const items = (await getAllMedia())
+      .filter(item => !item.deleted && item.type === "video")
+      .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+    if (!items.length) {
+      setStatus("No videos found in Gallery Pro. Choose a video file first.");
+      return;
+    }
+
+    loadVideo(items[0].blob, items[0].name, items[0].id);
+  } catch (error) {
+    setStatus("Could not load Gallery Pro videos: " + error.message);
+  }
+});
+
+function settings() {
+  return {
+    brightness: Number($("brightness").value),
+    contrast: Number($("contrast").value),
+    saturation: Number($("saturation").value),
+    speed: Number($("speed").value) / 100,
+    rotation: Number($("rotation").value),
+    mirror: $("mirror").checked,
+    mute: $("mute").checked
+  };
+}
+
+function filterString(s) {
+  return `brightness(${s.brightness}%) contrast(${s.contrast}%) saturate(${s.saturation}%)`;
+}
+
+function updatePreview() {
+  const s = settings();
+
+  video.style.filter = filterString(s);
+  video.style.transform =
+    `scaleX(${s.mirror ? -1 : 1}) rotate(${s.rotation}deg)`;
+
+  video.playbackRate = s.speed;
+
+  $("brightnessValue").textContent = s.brightness + "%";
+  $("contrastValue").textContent = s.contrast + "%";
+  $("saturationValue").textContent = s.saturation + "%";
+  $("speedValue").textContent = s.speed + "×";
+}
+
+["brightness", "contrast", "saturation", "speed", "rotation", "mirror", "mute"]
+  .forEach(id => $(id).addEventListener("input", updatePreview));
+
+video.addEventListener("loadedmetadata", () => {
+  if (Number.isFinite(video.duration)) {
+    $("trimStart").max = video.duration;
+    $("trimEnd").max = video.duration;
+    $("trimEnd").value = video.duration.toFixed(1);
+  }
+
+  updatePreview();
+});
+
+$("resetBtn").addEventListener("click", () => {
+  ["brightness", "contrast", "saturation"].forEach(id => {
+    $(id).value = 100;
+  });
+
+  $("speed").value = 100;
+  $("rotation").value = 0;
+  $("mirror").checked = false;
+  $("mute").checked = false;
+  $("trimStart").value = 0;
+
+  if (Number.isFinite(video.duration)) {
+    $("trimEnd").value = video.duration.toFixed(1);
+  }
+
+  updatePreview();
+  setStatus("Adjustments reset.");
+});
+
+function drawFrame(s) {
+  if (!video.videoWidth || !video.videoHeight) return;
+
+  const width = video.videoWidth;
+  const height = video.videoHeight;
+  const rotation = ((s.rotation % 360) + 360) % 360;
+  const sideways = rotation === 90 || rotation === 270;
+
+  canvas.width = sideways ? height : width;
+  canvas.height = sideways ? width : height;
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.save();
+  ctx.filter = filterString(s);
+  ctx.translate(canvas.width / 2, canvas.height / 2);
+  ctx.rotate(rotation * Math.PI / 180);
+  ctx.scale(s.mirror ? -1 : 1, 1);
+  ctx.drawImage(video, -width / 2, -height / 2, width, height);
+  ctx.restore();
+  ctx.filter = "none";
+}
+
+function supportedMimeType() {
+  if (!window.MediaRecorder) return "";
+
+  return [
+    "video/webm;codecs=vp9,opus",
+    "video/webm;codecs=vp8,opus",
+    "video/webm",
+    "video/mp4"
+  ].find(type => MediaRecorder.isTypeSupported(type)) || "";
+}
+
+function waitForSeek() {
+  return new Promise((resolve, reject) => {
+    if (video.seeking) {
+      video.addEventListener("seeked", resolve, { once: true });
+      video.addEventListener("error", reject, { once: true });
+    } else {
+      resolve();
+    }
+  });
+}
+
+async function exportVideo() {
+  if (!currentFile) {
+    setExportStatus("Choose a video first.");
+    return;
+  }
+
+  if (!window.MediaRecorder || !canvas.captureStream) {
+    setExportStatus(
+      "Video export is not supported by this browser. Try the latest Chrome."
+    );
+    return;
+  }
+
+  if (rendering) return;
+
+  const start = Math.max(0, Number($("trimStart").value) || 0);
+  const end = Math.min(
+    video.duration,
+    Number($("trimEnd").value) || video.duration
+  );
+
+  if (!Number.isFinite(video.duration) || end <= start) {
+    setExportStatus("Please enter a valid trim range.");
+    return;
+  }
+
+  rendering = true;
+  $("exportBtn").disabled = true;
+  $("progress").value = 0;
+
+  const s = settings();
+  const chunks = [];
+  let stream = null;
+  let audioStream = null;
+  let recorder = null;
+  let drawFrameId = 0;
+
+  try {
+    video.pause();
+    video.currentTime = start;
+    await waitForSeek();
+
+    drawFrame(s);
+    stream = canvas.captureStream(30);
+
+    if (!s.mute && video.captureStream) {
+      audioStream = video.captureStream();
+
+      audioStream.getAudioTracks().forEach(track => {
+        stream.addTrack(track);
+      });
+    }
+
+    const mimeType = supportedMimeType();
+
+    recorder = new MediaRecorder(
+      stream,
+      mimeType ? { mimeType } : undefined
+    );
+
+    recorder.ondataavailable = event => {
+      if (event.data && event.data.size) chunks.push(event.data);
+    };
+
+    const recordingFinished = new Promise((resolve, reject) => {
+      recorder.onstop = resolve;
+      recorder.onerror = () => reject(new Error("Recording failed."));
+    });
+
+    function renderFrame() {
+      if (!rendering) return;
+      drawFrame(s);
+      drawFrameId = requestAnimationFrame(renderFrame);
+    }
+
+    renderFrame();
+    video.playbackRate = s.speed;
+    recorder.start(1000);
+    await video.play();
+
+    await new Promise((resolve, reject) => {
+      const check = () => {
+        if (video.currentTime >= end || video.ended) {
+          video.pause();
+
+          if (recorder.state !== "inactive") recorder.stop();
+
+          resolve();
+          return;
+        }
+
+        $("progress").value = Math.min(
+          99,
+          ((video.currentTime - start) / (end - start)) * 100
+        );
+
+        setExportStatus(
+          "Rendering video… " + Math.round($("progress").value) + "%"
+        );
+
+        if (rendering) setTimeout(check, 100);
+        else reject(new Error("Export cancelled."));
+      };
+
+      check();
+    });
+
+    await recordingFinished;
+
+    if (!chunks.length) {
+      throw new Error("No video data recorded. Try another clip.");
+    }
+
+    const type = recorder.mimeType || mimeType || "video/webm";
+    const blob = new Blob(chunks, { type });
+
+    if (!blob.size) throw new Error("The exported video is empty.");
+
+    const extension = type.includes("mp4") ? "mp4" : "webm";
+    const baseName = currentFile.name.replace(/\.[^.]+$/, "");
+    const name = baseName + "-edited-" + Date.now() + "." + extension;
+
+    const id = await addMedia({
+      name,
+      type: "video",
+      mime: type,
+      blob,
+      size: blob.size,
+      createdAt: Date.now(),
+      deleted: false,
+      albumId: null
+    });
+
+    lastExport = { blob, name, type, id };
+    $("downloadBtn").disabled = false;
+    $("progress").value = 100;
+
+    setExportStatus(
+      "Saved to Gallery Pro: " + name +
+      " (" + (blob.size / 1048576).toFixed(1) + " MB)."
+    );
+  } catch (error) {
+    console.error(error);
+    setExportStatus("Export failed: " + error.message);
+  } finally {
+    rendering = false;
+    $("exportBtn").disabled = false;
+
+    if (drawFrameId) cancelAnimationFrame(drawFrameId);
+
+    if (recorder && recorder.state !== "inactive") {
+      try { recorder.stop(); } catch (_) {}
+    }
+
+    if (stream) stream.getTracks().forEach(track => track.stop());
+    if (audioStream) audioStream.getTracks().forEach(track => track.stop());
+
+    video.playbackRate = 1;
+    updatePreview();
+  }
+}
+
+$("exportBtn").addEventListener("click", exportVideo);
+
+$("downloadBtn").addEventListener("click", () => {
+  if (!lastExport) return;
+
+  const url = URL.createObjectURL(lastExport.blob);
+  const link = document.createElement("a");
+
+  link.href = url;
+  link.download = lastExport.name;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+
+  setTimeout(() => URL.revokeObjectURL(url), 30000);
+});
+
+$("backBtn").addEventListener("click", () => {
+  location.href = "./";
+});
+
+(async function init() {
+  try {
+    db = await openDatabase();
+
+    const id = new URLSearchParams(location.search).get("edit");
+
+    if (id) {
+      const items = await getAllMedia();
+      const item = items.find(media =>
+        media.id === Number(id) &&
+        !media.deleted &&
+        media.type === "video"
+      );
+
+      if (item) loadVideo(item.blob, item.name, item.id);
+    }
+
+    if ("serviceWorker" in navigator && location.protocol === "https:") {
+      navigator.serviceWorker.register("./service-worker.js").catch(() => {});
+    }
+  } catch (error) {
+    setStatus("Could not open Gallery Pro storage: " + error.message);
+  }
+})();
+
+window.addEventListener("beforeunload", () => {
+  if (previewUrl) URL.revokeObjectURL(previewUrl);
+});
+</script>
+</body>
+</html>

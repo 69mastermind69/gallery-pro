@@ -772,11 +772,13 @@ async function openAlbum(id){
 }
 
 document.addEventListener("click",async e=>{
-  if(appLocked){
+  
+  if (appLocked && !e.target.closest("#lockScreen")) {
     e.preventDefault();
     e.stopImmediatePropagation();
     return;
   }
+
   const b=e.target.closest("button");
   if(!b)return;
 

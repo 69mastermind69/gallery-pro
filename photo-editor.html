@@ -1,0 +1,569 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#090d1c">
+<title>Photo Studio — MASTERMIND</title>
+<style>
+:root {
+  color-scheme: dark;
+  --bg:#090d1c;--panel:#11182b;--line:#293451;
+  --text:#f4f6ff;--muted:#9aa8c7;--accent:#8260ff;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;background:radial-gradient(ellipse at top,#1b2650,var(--bg) 60%);
+  color:var(--text);font:15px system-ui,sans-serif;min-height:100vh
+}
+button,input,select{font:inherit}
+button{
+  cursor:pointer;border:1px solid var(--line);border-radius:11px;
+  padding:11px 13px;background:#192440;color:var(--text);
+  transition:transform .15s,border-color .15s
+}
+button:hover{transform:translateY(-1px);border-color:#927bff}
+button:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.primary{background:linear-gradient(110deg,#6550ec,#984dff);border:0}
+.app{max-width:1450px;margin:auto;padding:18px}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+h1{font-size:clamp(22px,4vw,32px);margin:0}
+h2{font-size:19px;margin:0 0 14px}
+p,.muted{color:var(--muted);font-size:13px}
+.brand{display:flex;gap:12px;align-items:center}
+.logo{width:48px;height:48px;display:grid;place-items:center;border-radius:15px;background:linear-gradient(135deg,#5f8cff,#a24dff);font-size:25px}
+.workspace{display:grid;grid-template-columns:minmax(0,1fr) 315px;gap:16px}
+.panel{background:#11182bf2;border:1px solid var(--line);border-radius:18px;padding:16px;min-width:0}
+.canvas-wrap{
+  min-height:330px;display:flex;align-items:center;justify-content:center;
+  background-color:#080c18;
+  background-image:linear-gradient(45deg,#111a2b 25%,transparent 25%),linear-gradient(-45deg,#111a2b 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#111a2b 75%),linear-gradient(-45deg,transparent 75%,#111a2b 75%);
+  background-size:22px 22px;background-position:0 0,0 11px,11px -11px,-11px 0;
+  border-radius:13px;overflow:hidden;position:relative
+}
+#canvas{display:block;max-width:100%;max-height:68vh;width:auto;height:auto;object-fit:contain}
+#empty{padding:45px 20px;text-align:center;color:var(--muted)}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+.control{margin:18px 0}
+.control label{display:flex;justify-content:space-between;gap:10px;margin-bottom:8px;font-size:13px}
+input[type=range]{width:100%;accent-color:#8a6aff}
+input[type=text],input[type=number],select{
+  width:100%;padding:11px;border-radius:10px;border:1px solid var(--line);
+  color:var(--text);background:#0b1224
+}
+.section{border-top:1px solid var(--line);padding-top:17px;margin-top:17px}
+.presets{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.presets button{padding:10px 4px;font-size:12px}
+.status{margin-top:12px;min-height:20px;color:#9debd9;font-size:13px}
+.file-label{display:inline-flex;align-items:center;justify-content:center}
+footer{text-align:center;padding:25px;color:var(--muted);font-size:12px}
+@media(max-width:850px){
+ .workspace{grid-template-columns:1fr}
+ .canvas-wrap{min-height:240px}
+ #canvas{max-height:55vh}
+ .app{padding:11px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div class="brand">
+    <div class="logo">✦</div>
+    <div><h1>Photo Studio</h1><div class="muted">Gallery Pro · MASTERMIND</div></div>
+  </div>
+  <button id="backBtn">← Gallery</button>
+</header>
+
+<div class="workspace">
+  <section class="panel">
+    <h2>Preview Canvas</h2>
+    <div class="canvas-wrap">
+      <div id="empty">
+        <div style="font-size:42px">🖼️</div>
+        <strong>Start editing your photo</strong>
+        <p>Select an image from your device to begin.</p>
+        <label class="primary file-label" style="padding:11px 15px;border-radius:11px;cursor:pointer">
+          Open Photo <input id="file" type="file" accept="image/*" hidden>
+        </label>
+      </div>
+      <canvas id="canvas" class="hidden"></canvas>
+    </div>
+
+    <div class="toolbar">
+      <label class="primary file-label">
+        Open Photo <input id="file2" type="file" accept="image/*" hidden>
+      </label>
+      <button id="rotateL" disabled>↶ Rotate</button>
+      <button id="rotateR" disabled>↷ Rotate</button>
+      <button id="flipH" disabled>↔ Flip H</button>
+      <button id="flipV" disabled>↕ Flip V</button>
+    </div>
+
+    <div class="toolbar">
+      <button id="undo" disabled>↶ Undo</button>
+      <button id="redo" disabled>↷ Redo</button>
+      <button id="reset" disabled>Reset</button>
+      <button id="crop" disabled>✂ Crop Center</button>
+    </div>
+    <div class="status" id="status" role="status" aria-live="polite">Ready. Open an image to begin.</div>
+  </section>
+
+  <aside class="panel">
+    <h2>🎨 Adjustments</h2>
+
+    <div class="control">
+      <label>Brightness <output id="brightnessOut">100%</output></label>
+      <input id="brightness" type="range" min="0" max="200" value="100">
+    </div>
+    <div class="control">
+      <label>Contrast <output id="contrastOut">100%</output></label>
+      <input id="contrast" type="range" min="0" max="200" value="100">
+    </div>
+    <div class="control">
+      <label>Saturation <output id="saturationOut">100%</output></label>
+      <input id="saturation" type="range" min="0" max="200" value="100">
+    </div>
+    <div class="control">
+      <label>Grayscale <output id="grayscaleOut">0%</output></label>
+      <input id="grayscale" type="range" min="0" max="100" value="0">
+    </div>
+    <div class="control">
+      <label>Sepia <output id="sepiaOut">0%</output></label>
+      <input id="sepia" type="range" min="0" max="100" value="0">
+    </div>
+    <div class="control">
+      <label>Blur <output id="blurOut">0px</output></label>
+      <input id="blur" type="range" min="0" max="10" value="0" step=".5">
+    </div>
+
+    <div class="section">
+      <h2>✨ Quick Filters</h2>
+      <div class="presets">
+        <button data-preset="original">Original</button>
+        <button data-preset="vivid">Vivid</button>
+        <button data-preset="vintage">Vintage</button>
+        <button data-preset="mono">B&W</button>
+        <button data-preset="warm">Warm</button>
+        <button data-preset="cool">Cool</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>✍ Add Text</h2>
+      <input id="caption" type="text" maxlength="100" placeholder="Write text on photo">
+      <div class="control">
+        <label>Text size <output id="textSizeOut">36px</output></label>
+        <input id="textSize" type="range" min="12" max="120" value="36">
+      </div>
+      <button id="addText" disabled>Apply Text</button>
+    </div>
+
+    <div class="section">
+      <h2>📐 Resize</h2>
+      <div class="control">
+        <label>Width (px)</label>
+        <input id="width" type="number" min="1" max="12000" placeholder="Width">
+      </div>
+      <div class="control">
+        <label>Height (px)</label>
+        <input id="height" type="number" min="1" max="12000" placeholder="Height">
+      </div>
+      <button id="resize" disabled>Apply Resize</button>
+    </div>
+
+    <div class="section">
+      <h2>💾 Export Photo</h2>
+      <div class="control">
+        <label>Format</label>
+        <select id="format">
+          <option value="image/jpeg">JPEG</option>
+          <option value="image/png">PNG</option>
+          <option value="image/webp">WebP</option>
+        </select>
+      </div>
+      <button class="primary" id="download" disabled style="width:100%">⬇ Download Edited Photo</button>
+      <p>Editing happens locally in your browser. Download a copy to keep your changes.</p>
+    </div>
+  </aside>
+</div>
+<footer>Gallery Pro · Photo Studio · Developer MASTERMIND</footer>
+</div>
+
+<script>
+"use strict";
+
+const $ = id => document.getElementById(id);
+const canvas = $("canvas");
+const ctx = canvas.getContext("2d");
+const original = document.createElement("canvas");
+const originalCtx = original.getContext("2d");
+
+let loaded = false;
+let rotation = 0;
+let flipX = false;
+let flipY = false;
+let settings = defaults();
+let history = [];
+let historyIndex = -1;
+let currentName = "edited-photo";
+let renderQueued = false;
+
+function defaults() {
+  return {
+    brightness:100, contrast:100, saturation:100,
+    grayscale:0, sepia:0, blur:0,
+    text:"", textSize:36,
+    rotation:0, flipX:false, flipY:false
+  };
+}
+
+function say(message) {
+  $("status").textContent = message;
+}
+
+function setEnabled(enabled) {
+  ["rotateL","rotateR","flipH","flipV","undo","redo","reset",
+   "crop","addText","resize","download"].forEach(id => $(id).disabled = !enabled);
+}
+
+function snapshot() {
+  return {
+    image:ctx.getImageData(0,0,canvas.width,canvas.height),
+    settings:{...settings}
+  };
+}
+
+function saveHistory() {
+  if (!loaded) return;
+  history = history.slice(0,historyIndex + 1);
+  history.push(snapshot());
+  if (history.length > 20) history.shift();
+  historyIndex = history.length - 1;
+  updateHistoryButtons();
+}
+
+function updateHistoryButtons() {
+  $("undo").disabled = !loaded || historyIndex <= 0;
+  $("redo").disabled = !loaded || historyIndex >= history.length - 1;
+}
+
+function restoreHistory(index) {
+  if (index < 0 || index >= history.length) return;
+  historyIndex = index;
+  const state = history[index];
+  canvas.width = state.image.width;
+  canvas.height = state.image.height;
+  ctx.putImageData(state.image,0,0);
+  settings = {...state.settings};
+  syncControls();
+  updateHistoryButtons();
+  say("History restored.");
+}
+
+function syncControls() {
+  ["brightness","contrast","saturation","grayscale","sepia","blur","textSize"].forEach(id => {
+    $(id).value = settings[id];
+    const suffix = id === "blur" ? "px" : id === "textSize" ? "px" : "%";
+    $(id + "Out").textContent = settings[id] + suffix;
+  });
+  $("caption").value = settings.text || "";
+}
+
+function render() {
+  if (!loaded) return;
+  const angle = ((settings.rotation % 360) + 360) % 360;
+  const swap = angle === 90 || angle === 270;
+  const w = original.width;
+  const h = original.height;
+  canvas.width = swap ? h : w;
+  canvas.height = swap ? w : h;
+
+  ctx.save();
+  ctx.translate(canvas.width / 2, canvas.height / 2);
+  ctx.rotate(angle * Math.PI / 180);
+  ctx.scale(settings.flipX ? -1 : 1, settings.flipY ? -1 : 1);
+  ctx.filter =
+    `brightness(${settings.brightness}%) ` +
+    `contrast(${settings.contrast}%) ` +
+    `saturate(${settings.saturation}%) ` +
+    `grayscale(${settings.grayscale}%) ` +
+    `sepia(${settings.sepia}%) ` +
+    `blur(${settings.blur}px)`;
+  ctx.drawImage(original, -w / 2, -h / 2, w, h);
+  ctx.restore();
+  ctx.filter = "none";
+
+  if (settings.text) {
+    const size = Math.max(12, Number(settings.textSize) || 36);
+    ctx.save();
+    ctx.font = `bold ${size}px system-ui, sans-serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.lineJoin = "round";
+    ctx.lineWidth = Math.max(2, size / 12);
+    ctx.strokeStyle = "rgba(0,0,0,.8)";
+    ctx.fillStyle = "#ffffff";
+    const lines = settings.text.split("\n").slice(0,4);
+    const lineHeight = size * 1.25;
+    const startY = canvas.height / 2 - (lines.length - 1) * lineHeight / 2;
+    lines.forEach((line,i) => {
+      const text = line.slice(0,100);
+      ctx.strokeText(text, canvas.width / 2, startY + i * lineHeight,
+        canvas.width * .9);
+      ctx.fillText(text, canvas.width / 2, startY + i * lineHeight,
+        canvas.width * .9);
+    });
+    ctx.restore();
+  }
+
+  $("empty").classList.add("hidden");
+  canvas.classList.remove("hidden");
+}
+
+function scheduleRender() {
+  if (renderQueued) return;
+  renderQueued = true;
+  requestAnimationFrame(() => {
+    renderQueued = false;
+    render();
+  });
+}
+
+function loadImage(file) {
+  if (!file || !file.type.startsWith("image/")) {
+    say("Please select a supported image.");
+    return;
+  }
+  const url = URL.createObjectURL(file);
+  const image = new Image();
+  image.onload = () => {
+    try {
+      if (image.naturalWidth > 12000 || image.naturalHeight > 12000) {
+        URL.revokeObjectURL(url);
+        say("Image is too large for this editor.");
+        return;
+      }
+      original.width = image.naturalWidth;
+      original.height = image.naturalHeight;
+      originalCtx.clearRect(0,0,original.width,original.height);
+      originalCtx.drawImage(image,0,0);
+      currentName = file.name.replace(/\.[^.]+$/,"") || "edited-photo";
+      settings = defaults();
+      history = [];
+      historyIndex = -1;
+      rotation = 0;
+      flipX = false;
+      flipY = false;
+      loaded = true;
+      render();
+      syncControls();
+      saveHistory();
+      setEnabled(true);
+      $("width").value = original.width;
+      $("height").value = original.height;
+      say("Photo loaded. Your original file remains unchanged.");
+    } catch(error) {
+      say("Unable to load this image. Try a smaller image.");
+    } finally {
+      URL.revokeObjectURL(url);
+    }
+  };
+  image.onerror = () => {
+    URL.revokeObjectURL(url);
+    say("Could not read this image.");
+  };
+  image.src = url;
+}
+
+function commitChange(message) {
+  render();
+  saveHistory();
+  say(message);
+}
+
+function setPreset(name) {
+  const presets = {
+    original:{brightness:100,contrast:100,saturation:100,grayscale:0,sepia:0,blur:0},
+    vivid:{brightness:105,contrast:115,saturation:150,grayscale:0,sepia:0,blur:0},
+    vintage:{brightness:105,contrast:90,saturation:80,grayscale:0,sepia:35,blur:0},
+    mono:{brightness:100,contrast:110,saturation:100,grayscale:100,sepia:0,blur:0},
+    warm:{brightness:105,contrast:105,saturation:120,grayscale:0,sepia:18,blur:0},
+    cool:{brightness:105,contrast:108,saturation:115,grayscale:0,sepia:0,blur:0}
+  };
+  Object.assign(settings,presets[name]);
+  syncControls();
+  commitChange("Filter applied: " + name);
+}
+
+$("file").addEventListener("change",e => loadImage(e.target.files[0]));
+$("file2").addEventListener("change",e => loadImage(e.target.files[0]));
+
+["brightness","contrast","saturation","grayscale","sepia","blur"].forEach(id => {
+  $(id).addEventListener("input", () => {
+    settings[id] = Number($(id).value);
+    const suffix = id === "blur" ? "px" : "%";
+    $(id+"Out").textContent = settings[id] + suffix;
+    scheduleRender();
+  });
+  $(id).addEventListener("change", () => {
+    if (loaded) {
+      render();
+      saveHistory();
+      say(id + " updated.");
+    }
+  });
+});
+
+$("textSize").addEventListener("input",() => {
+  settings.textSize = Number($("textSize").value);
+  $("textSizeOut").textContent = settings.textSize + "px";
+  scheduleRender();
+});
+$("textSize").addEventListener("change",() => {
+  if (loaded) { render(); saveHistory(); }
+});
+
+document.querySelectorAll("[data-preset]").forEach(button => {
+  button.addEventListener("click",() => {
+    if (!loaded) return say("Open a photo first.");
+    setPreset(button.dataset.preset);
+  });
+});
+
+$("rotateL").addEventListener("click",() => {
+  settings.rotation = (settings.rotation - 90 + 360) % 360;
+  commitChange("Rotated left.");
+});
+$("rotateR").addEventListener("click",() => {
+  settings.rotation = (settings.rotation + 90) % 360;
+  commitChange("Rotated right.");
+});
+$("flipH").addEventListener("click",() => {
+  settings.flipX = !settings.flipX;
+  commitChange("Horizontal flip applied.");
+});
+$("flipV").addEventListener("click",() => {
+  settings.flipY = !settings.flipY;
+  commitChange("Vertical flip applied.");
+});
+
+$("addText").addEventListener("click",() => {
+  if (!loaded) return;
+  settings.text = $("caption").value.slice(0,100);
+  commitChange(settings.text ? "Text applied to photo." : "Text removed.");
+});
+$("caption").addEventListener("keydown",e => {
+  if (e.key === "Enter") $("addText").click();
+});
+
+$("crop").addEventListener("click",() => {
+  if (!loaded) return;
+  const left = Math.floor(canvas.width * .1);
+  const top = Math.floor(canvas.height * .1);
+  const width = Math.max(1,Math.floor(canvas.width * .8));
+  const height = Math.max(1,Math.floor(canvas.height * .8));
+  const cropped = document.createElement("canvas");
+  cropped.width = width;
+  cropped.height = height;
+  cropped.getContext("2d").drawImage(canvas,left,top,width,height,0,0,width,height);
+  original.width = width;
+  original.height = height;
+  originalCtx.clearRect(0,0,width,height);
+  originalCtx.drawImage(cropped,0,0);
+  settings.rotation = 0;
+  settings.flipX = false;
+  settings.flipY = false;
+  settings.text = "";
+  $("caption").value = "";
+  render();
+  saveHistory();
+  $("width").value = width;
+  $("height").value = height;
+  say("Center crop applied. Undo is available.");
+});
+
+$("resize").addEventListener("click",() => {
+  if (!loaded) return;
+  const width = Number($("width").value);
+  const height = Number($("height").value);
+  if (!Number.isInteger(width) || !Number.isInteger(height) ||
+      width < 1 || height < 1 || width > 12000 || height > 12000) {
+    return say("Enter valid width and height between 1 and 12000.");
+  }
+  if (width * height > 40000000) {
+    return say("Requested image is too large. Use fewer pixels.");
+  }
+  const resized = document.createElement("canvas");
+  resized.width = width;
+  resized.height = height;
+  const rctx = resized.getContext("2d");
+  rctx.imageSmoothingEnabled = true;
+  rctx.imageSmoothingQuality = "high";
+  rctx.drawImage(canvas,0,0,width,height);
+  original.width = width;
+  original.height = height;
+  originalCtx.clearRect(0,0,width,height);
+  originalCtx.drawImage(resized,0,0);
+  settings.rotation = 0;
+  settings.flipX = false;
+  settings.flipY = false;
+  settings.text = "";
+  render();
+  saveHistory();
+  say("Resize applied.");
+});
+
+$("undo").addEventListener("click",() => restoreHistory(historyIndex - 1));
+$("redo").addEventListener("click",() => restoreHistory(historyIndex + 1));
+
+$("reset").addEventListener("click",() => {
+  if (!loaded) return;
+  settings = defaults();
+  syncControls();
+  render();
+  saveHistory();
+  say("Adjustments reset. Original photo was not changed.");
+});
+
+$("download").addEventListener("click",() => {
+  if (!loaded) return;
+  const format = $("format").value;
+  const mime = format;
+  const extension = format === "image/jpeg" ? "jpg" :
+                    format === "image/png" ? "png" : "webp";
+  const exportCanvas = document.createElement("canvas");
+  exportCanvas.width = canvas.width;
+  exportCanvas.height = canvas.height;
+  const exportCtx = exportCanvas.getContext("2d");
+
+  if (mime === "image/jpeg") {
+    exportCtx.fillStyle = "#ffffff";
+    exportCtx.fillRect(0,0,exportCanvas.width,exportCanvas.height);
+  }
+  exportCtx.drawImage(canvas,0,0);
+
+  exportCanvas.toBlob(blob => {
+    if (!blob) return say("Export failed. Try another format.");
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = currentName + "-edited." + extension;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url),2000);
+    say("Edited photo exported. Check your downloads.");
+  },mime,0.94);
+});
+
+$("backBtn").addEventListener("click",() => {
+  if (history.length && !confirm("Leave Photo Studio? Download your edits first if needed.")) return;
+  location.href = "./";
+});
+
+setEnabled(false);
+</script>
+</body>
+</html>

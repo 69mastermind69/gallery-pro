@@ -1,0 +1,15 @@
+
+{
+  "id": "./",
+  "name": "Gallery Pro by MASTERMIND",
+  "short_name": "Gallery Pro",
+  "description": "A free, offline-first personal photo and video gallery.",
+  "lang": "en",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#090d1c",
+  "theme_color": "#090d1c",
+  "categories": ["photo", "video", "utilities"]
+}

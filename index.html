@@ -75,17 +75,45 @@ body.locked{overflow:hidden}
 </head>
 <body>
 
-<!-- PIN lock screen -->
+<!-- PIN lock screen with recovery -->
 <div id="lockScreen" class="hidden">
   <form id="unlockForm" class="lock-card">
     <div class="lock-icon">🔐</div>
     <h2>Gallery Pro is Locked</h2>
     <p class="muted">Enter your PIN to continue.</p>
+
     <label for="unlockPin" class="muted">Your PIN</label>
-    <input id="unlockPin" class="field" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" minlength="4" autocomplete="current-password" placeholder="••••" required>
-    <button class="btn primary" style="width:100%" type="submit">Unlock App</button>
+    <input
+      id="unlockPin"
+      class="field"
+      type="password"
+      inputmode="numeric"
+      pattern="[0-9]*"
+      maxlength="6"
+      minlength="4"
+      autocomplete="current-password"
+      placeholder="••••"
+      required
+    >
+
+    <button class="btn primary" style="width:100%" type="submit">
+      Unlock App
+    </button>
+
     <p id="unlockError" class="lock-error" aria-live="polite"></p>
-    <p class="muted">Your memories, your control.</p>
+
+    <button
+      class="btn danger"
+      id="recoverPinButton"
+      type="button"
+      style="width:100%;margin-top:10px"
+    >
+      Forgot PIN? Reset App Lock
+    </button>
+
+    <p class="muted">
+      Recovery removes the app PIN setting only.
+    </p>
   </form>
 </div>
 
@@ -403,6 +431,33 @@ $("disableLockButton").addEventListener("click",async()=>{
   }
 });
 
+$("recoverPinButton").addEventListener("click", () => {
+  const confirmed = confirm(
+    "Forgotten PIN reset করবেন?\n\n" +
+    "শুধু App Lock-এর PIN মুছে যাবে। " +
+    "IndexedDB-তে থাকা ছবি, ভিডিও, অ্যালবাম ও Trash মুছে যাবে না।\n\n" +
+    "তবে এরপর ডিভাইস ব্যবহার করতে পারা অন্য কেউও অ্যাপ খুলতে পারবে। চালিয়ে যাবেন?"
+  );
+
+  if (!confirmed) return;
+
+  try {
+    localStorage.removeItem(PIN_KEY);
+
+    appLocked = false;
+    document.body.classList.remove("locked");
+    $("mainApp").inert = false;
+    $("lockScreen").classList.add("hidden");
+    $("unlockPin").value = "";
+    $("unlockError").textContent = "";
+
+    toast("PIN reset হয়েছে। Gallery database অক্ষত আছে।");
+  } catch (err) {
+    $("unlockError").textContent =
+      "PIN reset হয়নি। Browser storage permission পরীক্ষা করো।";
+  }
+});
+      
 $("unlockForm").addEventListener("submit",async e=>{
   e.preventDefault();
   const pin=$("unlockPin").value;

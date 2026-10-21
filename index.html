@@ -174,7 +174,7 @@ dialog::backdrop{background:#000b;backdrop-filter:blur(5px)}
   <h2>Media Tools</h2>
   <div class="actions">
     <button class="btn action" id="toolPdf"><span class="emoji">📄</span>Image to PDF</button>
-    <button class="btn action" id="toolQr"><span class="emoji">▦</span>QR Code</button>
+    <button class="btn action" id="toolQr"><span class="emoji">▦</span>QR Code Generator</button>
     <button class="btn action" id="toolShare"><span class="emoji">↗</span>Share Media</button>
     <button class="btn action" id="toolEdit"><span class="emoji">🎨</span>Photo Editor</button>
     <button class="btn action" id="toolVideo"><span class="emoji">🎬</span>Professional Video Editor</button>
@@ -183,7 +183,7 @@ dialog::backdrop{background:#000b;backdrop-filter:blur(5px)}
   <div class="panel">
     <h3>About Gallery Pro</h3>
     <p class="muted">Developer: MASTERMIND</p>
-    <p class="muted">Photo Editor can edit gallery images and save the result back into this app. Video Editor exports rendered videos when supported by the browser. Photos to PDF creates a downloadable PDF from selected images.</p>
+    <p class="muted">Photo Editor can edit gallery images and save the result back into this app. Video Editor exports rendered videos when supported by the browser. Photos to PDF creates a downloadable PDF from selected images. QR Code Generator creates downloadable QR images.</p>
   </div>
 </section>
 </main>
@@ -560,6 +560,11 @@ document.addEventListener("click",async e=>{
       return;
     }
 
+    if(b.id==="toolQr"){
+      location.href="./qr-tool.html";
+      return;
+    }
+
     if(b.dataset.export)await exportItem(b.dataset.export);
     if(b.dataset.share)await shareItem(b.dataset.share);
 
@@ -626,8 +631,8 @@ document.addEventListener("click",async e=>{
       toast("Choose Share on a media item.");
     }
 
-    if(["toolQr","toolLock"].includes(b.id)){
-      toast("This tool is not implemented in this version yet.");
+    if(b.id==="toolLock"){
+      toast("App Lock is not implemented in this version yet.");
     }
   }catch(err){
     console.error(err);

@@ -5,7 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#090d1c">
-<meta name="description" content="Gallery Pro by MASTERMIND — your private offline media gallery.">
+<meta name="description" content="Gallery Pro by MASTERMIND — your private media gallery.">
 <title>Gallery Pro by MASTERMIND</title>
 <link rel="manifest" href="./manifest.json">
 <style>
@@ -175,6 +175,7 @@ dialog::backdrop{background:#000b;backdrop-filter:blur(5px)}
   <div class="actions">
     <button class="btn action" id="toolPdf"><span class="emoji">📄</span>Image to PDF</button>
     <button class="btn action" id="toolQr"><span class="emoji">▦</span>QR Code Generator</button>
+    <button class="btn action" id="toolBackup"><span class="emoji">💾</span>Backup & Restore</button>
     <button class="btn action" id="toolShare"><span class="emoji">↗</span>Share Media</button>
     <button class="btn action" id="toolEdit"><span class="emoji">🎨</span>Photo Editor</button>
     <button class="btn action" id="toolVideo"><span class="emoji">🎬</span>Professional Video Editor</button>
@@ -183,7 +184,7 @@ dialog::backdrop{background:#000b;backdrop-filter:blur(5px)}
   <div class="panel">
     <h3>About Gallery Pro</h3>
     <p class="muted">Developer: MASTERMIND</p>
-    <p class="muted">Photo Editor can edit gallery images and save the result back into this app. Video Editor exports rendered videos when supported by the browser. Photos to PDF creates a downloadable PDF from selected images. QR Code Generator creates downloadable QR images.</p>
+    <p class="muted">A personal media gallery with photo editing, video editing, QR generation, image-to-PDF conversion and local backup tools.</p>
   </div>
 </section>
 </main>
@@ -562,6 +563,11 @@ document.addEventListener("click",async e=>{
 
     if(b.id==="toolQr"){
       location.href="./qr-tool.html";
+      return;
+    }
+
+    if(b.id==="toolBackup"){
+      location.href="./backup-tool.html";
       return;
     }
 

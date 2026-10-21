@@ -1,0 +1,436 @@
+
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#090d1c">
+<title>Photos to PDF | Gallery Pro by MASTERMIND</title>
+<link rel="manifest" href="./manifest.json">
+<style>
+:root{color-scheme:dark;--bg:#090d1c;--panel:#11182b;--border:#293451;--text:#f4f6ff;--muted:#9aa8c7;--accent:#8564ff}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(ellipse at top,#17234a,var(--bg) 60%);color:var(--text);font-family:system-ui,Arial,sans-serif;min-height:100vh}
+.app{max-width:1100px;margin:auto;padding:16px}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+h1{font-size:clamp(22px,4vw,30px);margin:0}
+h2{font-size:19px}
+.muted{color:var(--muted);font-size:13px;line-height:1.6}
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:16px;margin-bottom:16px}
+button,input,select{font:inherit}
+button{padding:10px 13px;color:var(--text);background:#18213a;border:1px solid var(--border);border-radius:11px;cursor:pointer}
+button:hover{border-color:#8564ff}
+.primary{background:linear-gradient(110deg,#6653ed,#904dff);border-color:transparent}
+.field{width:100%;padding:11px;margin:6px 0 12px;background:#0b1224;color:white;border:1px solid var(--border);border-radius:10px}
+.toolbar{display:flex;gap:9px;flex-wrap:wrap;margin:12px 0}
+.toolbar button{flex:1}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:12px}
+.card{min-width:0;overflow:hidden;border:1px solid var(--border);border-radius:13px;background:#0b1224}
+.thumb{width:100%;aspect-ratio:1;object-fit:contain;display:block;background:#080c18}
+.card-body{padding:9px}
+.name{font-size:12px;overflow-wrap:anywhere;margin:7px 0}
+.card-actions{display:flex;gap:5px;flex-wrap:wrap}
+.small{font-size:12px;padding:7px 9px}
+.status{background:#101a32;border:1px solid #344165;border-radius:11px;padding:12px;font-size:13px;line-height:1.6;overflow-wrap:anywhere}
+.empty{padding:25px;text-align:center;color:var(--muted);border:1px dashed #394563;border-radius:13px}
+.row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+label{display:block;font-size:13px}
+#progress{width:100%}
+@media(max-width:520px){.row{grid-template-columns:1fr}.app{padding:10px}}
+</style>
+</head>
+<body>
+<main class="app">
+<header>
+  <div>
+    <h1>📄 Photos to PDF</h1>
+    <div class="muted">Gallery Pro by MASTERMIND</div>
+  </div>
+  <button id="backBtn">← Gallery</button>
+</header>
+
+<section class="panel">
+  <h2>১. ছবি নির্বাচন করো</h2>
+  <p class="muted">Gallery Pro-তে থাকা ছবি অথবা ডিভাইস থেকে নতুন ছবি যোগ করো। নির্বাচিত প্রতিটি ছবি PDF-এর আলাদা পৃষ্ঠা হবে।</p>
+  <input class="field" id="filePicker" type="file" accept="image/*" multiple>
+  <div class="toolbar">
+    <button id="loadGallery" class="primary">🖼️ Gallery থেকে ছবি নাও</button>
+    <button id="selectAll">সব নির্বাচন</button>
+    <button id="clearAll">সব মুছে দাও</button>
+  </div>
+  <div class="status" id="status">ছবি নির্বাচন করো।</div>
+</section>
+
+<section class="panel">
+  <h2>২. PDF সেটিংস</h2>
+  <div class="row">
+    <div>
+      <label for="pageSize">পৃষ্ঠার আকার</label>
+      <select class="field" id="pageSize">
+        <option value="a4">A4</option>
+        <option value="letter">Letter</option>
+        <option value="fit">ছবির অনুপাত অনুযায়ী</option>
+      </select>
+    </div>
+    <div>
+      <label for="orientation">পৃষ্ঠার দিক</label>
+      <select class="field" id="orientation">
+        <option value="portrait">Portrait</option>
+        <option value="landscape">Landscape</option>
+      </select>
+    </div>
+    <div>
+      <label for="fitMode">ছবি বসানোর ধরন</label>
+      <select class="field" id="fitMode">
+        <option value="contain">সম্পূর্ণ ছবি দেখাও (Fit)</option>
+        <option value="cover">পৃষ্ঠা ভরাট করো (Crop হতে পারে)</option>
+      </select>
+    </div>
+    <div>
+      <label for="margin">পৃষ্ঠার চারপাশের ফাঁকা জায়গা (mm)</label>
+      <input class="field" id="margin" type="number" min="0" max="40" value="8">
+    </div>
+    <div>
+      <label for="quality">ছবির গুণমান</label>
+      <select class="field" id="quality">
+        <option value="0.92">উচ্চ</option>
+        <option value="0.78">মাঝারি — ফাইল ছোট</option>
+        <option value="1">সর্বোচ্চ JPEG গুণমান</option>
+      </select>
+    </div>
+    <div>
+      <label for="pdfName">PDF ফাইলের নাম</label>
+      <input class="field" id="pdfName" maxlength="80" value="Gallery-Pro-Photos">
+    </div>
+  </div>
+  <p class="muted">পরামর্শ: সাধারণ ছবি ও ডকুমেন্টের জন্য A4 + Fit ব্যবহার করো। Cover দিলে ছবির কিছু অংশ কেটে যেতে পারে।</p>
+</section>
+
+<section class="panel">
+  <h2>৩. নির্বাচিত ছবি <span id="count">(0)</span></h2>
+  <p class="muted">Up/Down দিয়ে পৃষ্ঠার ক্রম বদলাও। PDF-এ শুধু নির্বাচিত ছবিগুলো থাকবে।</p>
+  <div id="imageList" class="grid"></div>
+</section>
+
+<section class="panel">
+  <h2>৪. PDF তৈরি করো</h2>
+  <button class="primary" id="makePdf" style="width:100%">📄 Create & Download PDF</button>
+  <p></p>
+  <progress id="progress" max="100" value="0"></progress>
+  <div id="result" class="status" style="margin-top:12px">PDF তৈরি করার জন্য ছবি নির্বাচন করো।</div>
+  <p class="muted">ছবিগুলো ব্রাউজারের মধ্যেই প্রসেস হয়। প্রথমবার PDF লাইব্রেরি লোড করতে ইন্টারনেট প্রয়োজন হতে পারে।</p>
+</section>
+
+<footer class="muted" style="text-align:center;padding:16px">MASTERMIND · Gallery Pro</footer>
+</main>
+
+<script src="https://unpkg.com/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
+<script>
+"use strict";
+
+const $ = id => document.getElementById(id);
+const DB_NAME = "MastermindGalleryDB";
+const DB_VERSION = 1;
+let db;
+let selected = [];
+let nextId = 1;
+
+function message(text) {
+  $("status").textContent = text;
+}
+function result(text) {
+  $("result").textContent = text;
+}
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+    request.onupgradeneeded = () => {
+      const d = request.result;
+      if (!d.objectStoreNames.contains("media")) {
+        const s = d.createObjectStore("media", {keyPath:"id",autoIncrement:true});
+        s.createIndex("deleted","deleted",{unique:false});
+        s.createIndex("createdAt","createdAt",{unique:false});
+      }
+      if (!d.objectStoreNames.contains("albums")) {
+        d.createObjectStore("albums",{keyPath:"id",autoIncrement:true});
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+function getAllMedia() {
+  return new Promise((resolve,reject) => {
+    const tx = db.transaction("media","readonly");
+    const req = tx.objectStore("media").getAll();
+    req.onsuccess = () => resolve(req.result || []);
+    req.onerror = () => reject(req.error);
+  });
+}
+function isImage(file) {
+  return file && file.type && file.type.startsWith("image/");
+}
+function addFiles(files) {
+  let added = 0;
+  for (const file of files) {
+    if (!isImage(file)) continue;
+    selected.push({
+      key:"local-"+(nextId++),
+      name:file.name || "photo",
+      blob:file,
+      checked:true,
+      local:true
+    });
+    added++;
+  }
+  render();
+  message(added ? added+"টি ছবি যোগ হয়েছে।" : "কোনো সমর্থিত ছবি যোগ হয়নি।");
+}
+function render() {
+  $("count").textContent = "("+selected.filter(x=>x.checked).length+" নির্বাচিত / "+selected.length+" মোট)";
+  const list = $("imageList");
+  if (!selected.length) {
+    list.innerHTML = '<div class="empty" style="grid-column:1/-1">এখনো কোনো ছবি যোগ করা হয়নি।</div>';
+    return;
+  }
+  list.innerHTML = "";
+  selected.forEach((item,index) => {
+    const card = document.createElement("article");
+    card.className = "card";
+    const img = document.createElement("img");
+    img.className = "thumb";
+    img.alt = item.name;
+    img.src = URL.createObjectURL(item.blob);
+    img.onload = () => URL.revokeObjectURL(img.src);
+    const body = document.createElement("div");
+    body.className = "card-body";
+    const checkLabel = document.createElement("label");
+    const check = document.createElement("input");
+    check.type = "checkbox";
+    check.checked = item.checked;
+    check.addEventListener("change", () => {
+      item.checked = check.checked;
+      render();
+    });
+    checkLabel.append(check, document.createTextNode(" PDF-এ রাখো"));
+    const name = document.createElement("div");
+    name.className = "name";
+    name.textContent = (index+1)+". "+item.name;
+    const actions = document.createElement("div");
+    actions.className = "card-actions";
+    const up = document.createElement("button");
+    up.className = "small";
+    up.textContent = "↑";
+    up.disabled = index===0;
+    up.title = "উপরে";
+    up.onclick = () => {
+      [selected[index-1],selected[index]] = [selected[index],selected[index-1]];
+      render();
+    };
+    const down = document.createElement("button");
+    down.className = "small";
+    down.textContent = "↓";
+    down.disabled = index===selected.length-1;
+    down.title = "নিচে";
+    down.onclick = () => {
+      [selected[index+1],selected[index]] = [selected[index],selected[index+1]];
+      render();
+    };
+    const remove = document.createElement("button");
+    remove.className = "small";
+    remove.textContent = "Remove";
+    remove.onclick = () => {
+      selected.splice(index,1);
+      render();
+    };
+    actions.append(up,down,remove);
+    body.append(checkLabel,name,actions);
+    card.append(img,body);
+    list.append(card);
+  });
+}
+function loadImage(blob) {
+  return new Promise((resolve,reject) => {
+    const url = URL.createObjectURL(blob);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      resolve(img);
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("একটি ছবি পড়া যায়নি।"));
+    };
+    img.src = url;
+  });
+}
+function imageToJpeg(img,quality) {
+  const maxSide = 2400;
+  const scale = Math.min(1,maxSide/Math.max(img.naturalWidth,img.naturalHeight));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.max(1,Math.round(img.naturalWidth*scale));
+  canvas.height = Math.max(1,Math.round(img.naturalHeight*scale));
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.drawImage(img,0,0,canvas.width,canvas.height);
+  return {
+    data:canvas.toDataURL("image/jpeg",quality),
+    width:canvas.width,
+    height:canvas.height
+  };
+}
+function safeFileName(name) {
+  return (name || "Gallery-Pro-Photos")
+    .replace(/[\\/:*?"<>|]/g,"-")
+    .trim()
+    .replace(/\.pdf$/i,"") || "Gallery-Pro-Photos";
+}
+async function createPdf() {
+  if (!window.jspdf || !window.jspdf.jsPDF) {
+    result("PDF লাইব্রেরি লোড হয়নি। ইন্টারনেট চালু করে পেজটি আবার খোলো।");
+    return;
+  }
+  const items = selected.filter(x=>x.checked);
+  if (!items.length) {
+    result("PDF তৈরির আগে অন্তত একটি ছবি নির্বাচন করো।");
+    return;
+  }
+  if (items.length > 100) {
+    result("একবারে সর্বোচ্চ ১০০টি ছবি যোগ করো, যাতে ব্রাউজার ধীর না হয়।");
+    return;
+  }
+  const margin = Number($("margin").value);
+  if (!Number.isFinite(margin) || margin < 0 || margin > 40) {
+    result("Margin 0 থেকে 40 mm-এর মধ্যে রাখো।");
+    return;
+  }
+
+  const button = $("makePdf");
+  button.disabled = true;
+  $("progress").value = 0;
+  result("PDF তৈরি হচ্ছে…");
+  try {
+    const size = $("pageSize").value;
+    const orientation = $("orientation").value;
+    const quality = Number($("quality").value);
+    const fitMode = $("fitMode").value;
+    const {jsPDF} = window.jspdf;
+    const first = await loadImage(items[0].blob);
+    let doc;
+
+    if (size === "fit") {
+      const w = first.naturalWidth;
+      const h = first.naturalHeight;
+      doc = new jsPDF({
+        orientation:w>=h?"landscape":"portrait",
+        unit:"pt",
+        format:[w,h],
+        compress:true
+      });
+    } else {
+      doc = new jsPDF({
+        orientation,
+        unit:"mm",
+        format:size,
+        compress:true
+      });
+    }
+
+    for (let i=0;i<items.length;i++) {
+      const img = i===0 ? first : await loadImage(items[i].blob);
+      let pageW = doc.internal.pageSize.getWidth();
+      let pageH = doc.internal.pageSize.getHeight();
+
+      if (size==="fit" && i>0) {
+        const w=img.naturalWidth,h=img.naturalHeight;
+        doc.addPage([w,h],w>=h?"landscape":"portrait");
+        pageW=doc.internal.pageSize.getWidth();
+        pageH=doc.internal.pageSize.getHeight();
+      } else if (i>0) {
+        doc.addPage(size,orientation);
+        pageW=doc.internal.pageSize.getWidth();
+        pageH=doc.internal.pageSize.getHeight();
+      }
+
+      const image = imageToJpeg(img,quality);
+      const availableW = Math.max(1,pageW-2*margin);
+      const availableH = Math.max(1,pageH-2*margin);
+      let w=image.width,h=image.height;
+
+      if (fitMode==="cover" && size!=="fit") {
+        const scale=Math.max(availableW/w,availableH/h);
+        w*=scale;h*=scale;
+      } else {
+        const scale=Math.min(availableW/w,availableH/h);
+        w*=scale;h*=scale;
+      }
+      const x=(pageW-w)/2;
+      const y=(pageH-h)/2;
+      doc.addImage(image.data,"JPEG",x,y,w,h,undefined,"FAST");
+      $("progress").value=Math.round(((i+1)/items.length)*100);
+      result("PDF তৈরি হচ্ছে… "+(i+1)+" / "+items.length+" পৃষ্ঠা");
+      await new Promise(resolve=>setTimeout(resolve,0));
+    }
+
+    const name=safeFileName($("pdfName").value)+".pdf";
+    doc.save(name);
+    result("PDF তৈরি হয়েছে: "+name+" · "+items.length+" পৃষ্ঠা। Downloads ফোল্ডার দেখো।");
+  } catch (error) {
+    console.error(error);
+    result("PDF তৈরি করা যায়নি: "+(error.message||"অজানা সমস্যা"));
+  } finally {
+    button.disabled=false;
+  }
+}
+$("filePicker").addEventListener("change",e=>{
+  addFiles(Array.from(e.target.files||[]));
+  e.target.value="";
+});
+$("loadGallery").addEventListener("click",async()=>{
+  try {
+    const media=(await getAllMedia())
+      .filter(x=>!x.deleted && x.type==="image" && x.blob)
+      .sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+    if (!media.length) {
+      message("Gallery Pro-তে কোনো ছবি নেই। ডিভাইস থেকে ছবি যোগ করো।");
+      return;
+    }
+    const existing=new Set(selected.map(x=>x.key));
+    let added=0;
+    for (const item of media) {
+      const key="gallery-"+item.id;
+      if (existing.has(key)) continue;
+      selected.push({key,name:item.name||"Gallery photo",blob:item.blob,checked:true,local:false});
+      added++;
+    }
+    render();
+    message(added ? added+"টি Gallery ছবি যোগ হয়েছে।" : "এই ছবিগুলো আগে থেকেই তালিকায় আছে।");
+  } catch(error) {
+    message("Gallery খুলতে সমস্যা: "+error.message);
+  }
+});
+$("selectAll").addEventListener("click",()=>{
+  selected.forEach(x=>x.checked=true);
+  render();
+});
+$("clearAll").addEventListener("click",()=>{
+  selected=[];
+  render();
+  message("ছবির তালিকা পরিষ্কার করা হয়েছে।");
+});
+$("makePdf").addEventListener("click",createPdf);
+$("backBtn").addEventListener("click",()=>location.href="./");
+(async()=>{
+  try {
+    db=await openDB();
+    if ("serviceWorker" in navigator && location.protocol==="https:") {
+      navigator.serviceWorker.register("./service-worker.js").catch(()=>{});
+    }
+  } catch(error) {
+    message("Gallery storage খুলতে সমস্যা: "+error.message);
+  }
+})();
+</script>
+</body>
+</html>

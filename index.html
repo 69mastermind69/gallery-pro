@@ -59,13 +59,37 @@ h2,h3{margin-top:0}
 footer{text-align:center;color:var(--muted);padding:28px 8px 8px;font-size:12px}
 dialog{width:min(560px,calc(100% - 24px));max-height:85vh;overflow:auto;color:var(--text);background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:20px}
 dialog::backdrop{background:#000b;backdrop-filter:blur(5px)}
-#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#263351;padding:12px 18px;border-radius:12px;box-shadow:0 5px 25px #0008;z-index:10;max-width:90%}
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#263351;padding:12px 18px;border-radius:12px;box-shadow:0 5px 25px #0008;z-index:10001;max-width:90%}
+
+/* App Lock */
+#lockScreen{position:fixed;inset:0;z-index:10000;background:radial-gradient(ellipse at top,#17234a 0,#090d1c 65%);display:grid;place-items:center;padding:20px}
+.lock-card{width:min(420px,100%);background:#11182b;border:1px solid #394563;border-radius:22px;padding:28px;box-shadow:0 20px 70px #0008;text-align:center}
+.lock-icon{font-size:48px;margin-bottom:12px}
+.lock-card h2{margin-bottom:8px}
+.lock-card .field{text-align:center;font-size:22px;letter-spacing:8px}
+.lock-error{color:#ff8198;min-height:22px;font-size:13px}
+body.locked{overflow:hidden}
 @media(max-width:850px){.layout{grid-template-columns:1fr}aside{padding:10px}nav{display:flex;overflow-x:auto}.nav-btn{white-space:nowrap;padding:10px 13px}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.actions{grid-template-columns:repeat(2,minmax(0,1fr))}.app{padding:12px}}
 @media(max-width:380px){.media-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
 </head>
 <body>
-<div class="app">
+
+<!-- PIN lock screen -->
+<div id="lockScreen" class="hidden">
+  <form id="unlockForm" class="lock-card">
+    <div class="lock-icon">🔐</div>
+    <h2>Gallery Pro is Locked</h2>
+    <p class="muted">Enter your PIN to continue.</p>
+    <label for="unlockPin" class="muted">Your PIN</label>
+    <input id="unlockPin" class="field" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" minlength="4" autocomplete="current-password" placeholder="••••" required>
+    <button class="btn primary" style="width:100%" type="submit">Unlock App</button>
+    <p id="unlockError" class="lock-error" aria-live="polite"></p>
+    <p class="muted">Your memories, your control.</p>
+  </form>
+</div>
+
+<div class="app" id="mainApp">
 <header>
   <div class="brand">
     <div class="logo">▧</div>
@@ -101,14 +125,12 @@ dialog::backdrop{background:#000b;backdrop-filter:blur(5px)}
     <button class="btn primary" data-go="camera">◎ Open Camera</button>
     <button class="btn secondary" data-go="gallery">Explore Gallery</button>
   </div>
-
   <div class="stats">
     <div class="stat"><div class="muted">Photos</div><div class="number" id="photoCount">0</div></div>
     <div class="stat"><div class="muted">Videos</div><div class="number" id="videoCount">0</div></div>
     <div class="stat"><div class="muted">Albums</div><div class="number" id="albumCount">0</div></div>
     <div class="stat"><div class="muted">In Trash</div><div class="number" id="trashCount">0</div></div>
   </div>
-
   <h3>Quick Actions</h3>
   <div class="actions">
     <button class="btn action" data-go="camera"><span class="emoji">📸</span>Camera</button>
@@ -118,7 +140,6 @@ dialog::backdrop{background:#000b;backdrop-filter:blur(5px)}
     <button class="btn action" data-go="gallery"><span class="emoji">🎞️</span>All Media</button>
     <button class="btn action" data-go="trash"><span class="emoji">🗑️</span>Trash & Restore</button>
   </div>
-
   <h3>Recent Media</h3>
   <div class="media-grid" id="recentGrid"></div>
 </section>
@@ -210,15 +231,38 @@ dialog::backdrop{background:#000b;backdrop-filter:blur(5px)}
   <button class="btn secondary" data-close="albumDialog" style="margin-top:15px">Close</button>
 </dialog>
 
+<dialog id="lockSettingsDialog">
+  <h2>🔐 App Lock Settings</h2>
+  <p class="muted" id="lockSettingsDescription">Set a 4–6 digit PIN to lock this app.</p>
+  <form id="lockSettingsForm">
+    <div id="currentPinWrap" class="hidden">
+      <label for="currentPin">Current PIN</label>
+      <input class="field" id="currentPin" type="password" inputmode="numeric" pattern="[0-9]*" minlength="4" maxlength="6" autocomplete="current-password">
+    </div>
+    <div id="newPinWrap">
+      <label for="newPin">New PIN (4–6 digits)</label>
+      <input class="field" id="newPin" type="password" inputmode="numeric" pattern="[0-9]*" minlength="4" maxlength="6" maxlength="6" autocomplete="new-password">
+      <label for="confirmPin">Confirm new PIN</label>
+      <input class="field" id="confirmPin" type="password" inputmode="numeric" pattern="[0-9]*" minlength="4" maxlength="6" autocomplete="new-password">
+    </div>
+    <p id="lockSettingsError" class="lock-error" aria-live="polite"></p>
+    <button class="btn primary" id="savePinButton" type="submit">Save PIN</button>
+    <button class="btn danger hidden" id="disableLockButton" type="button">Disable App Lock</button>
+    <button class="btn secondary" type="button" data-close="lockSettingsDialog">Cancel</button>
+  </form>
+</dialog>
+
 <script>
 (()=>{"use strict";
 
 const $=id=>document.getElementById(id);
 const DB_NAME="MastermindGalleryDB";
 const DB_VERSION=1;
+const PIN_KEY="mastermindGalleryPinV1";
 
 let db,cameraStream=null,recorder=null,recording=false,toastTimer;
 let recordedChunks=[];
+let appLocked=false;
 const objectUrls=new Set();
 
 function toast(message){
@@ -227,6 +271,158 @@ function toast(message){
   clearTimeout(toastTimer);
   toastTimer=setTimeout(()=>$("toast").classList.add("hidden"),3200);
 }
+
+/* PIN security helpers: salted SHA-256 digest via Web Crypto. */
+function readPinRecord(){
+  try{
+    const raw=localStorage.getItem(PIN_KEY);
+    if(!raw)return null;
+    const record=JSON.parse(raw);
+    if(typeof record.salt!=="string"||typeof record.hash!=="string")return null;
+    return record;
+  }catch(e){return null}
+}
+
+function bytesToHex(bytes){
+  return Array.from(bytes,b=>b.toString(16).padStart(2,"0")).join("");
+}
+
+async function digestPin(pin,salt){
+  if(!crypto.subtle)throw Error("Secure PIN storage needs HTTPS or a secure browser context.");
+  const data=new TextEncoder().encode(salt+":"+pin);
+  const digest=await crypto.subtle.digest("SHA-256",data);
+  return bytesToHex(new Uint8Array(digest));
+}
+
+async function createPinRecord(pin){
+  const bytes=crypto.getRandomValues(new Uint8Array(16));
+  const salt=bytesToHex(bytes);
+  const hash=await digestPin(pin,salt);
+  localStorage.setItem(PIN_KEY,JSON.stringify({salt,hash}));
+}
+
+async function verifyPin(pin){
+  const record=readPinRecord();
+  if(!record)return false;
+  const candidate=await digestPin(pin,record.salt);
+  if(candidate.length!==record.hash.length)return false;
+  let diff=0;
+  for(let i=0;i<candidate.length;i++)diff|=candidate.charCodeAt(i)^record.hash.charCodeAt(i);
+  return diff===0;
+}
+
+function lockApp(){
+  if(!readPinRecord())return;
+  appLocked=true;
+  document.body.classList.add("locked");
+  $("mainApp").inert=true;
+  $("lockScreen").classList.remove("hidden");
+  $("unlockPin").value="";
+  $("unlockError").textContent="";
+  stopCamera();
+  setTimeout(()=>$("unlockPin").focus(),50);
+}
+
+function unlockApp(){
+  appLocked=false;
+  document.body.classList.remove("locked");
+  $("mainApp").inert=false;
+  $("lockScreen").classList.add("hidden");
+  $("unlockPin").value="";
+  $("unlockError").textContent="";
+}
+
+function openLockSettings(){
+  const exists=!!readPinRecord();
+  $("lockSettingsDescription").textContent=exists
+    ?"Enter your current PIN to change it or disable App Lock."
+    :"Create a 4–6 digit PIN. You will need it when opening Gallery Pro again.";
+  $("currentPinWrap").classList.toggle("hidden",!exists);
+  $("disableLockButton").classList.toggle("hidden",!exists);
+  $("newPinWrap").classList.remove("hidden");
+  $("newPin").required=true;
+  $("confirmPin").required=true;
+  $("currentPin").required=exists;
+  $("currentPin").value="";
+  $("newPin").value="";
+  $("confirmPin").value="";
+  $("lockSettingsError").textContent="";
+  $("savePinButton").textContent=exists?"Change PIN":"Enable App Lock";
+  $("lockSettingsDialog").showModal();
+}
+
+$("lockSettingsForm").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const exists=!!readPinRecord();
+  const current=$("currentPin").value;
+  const pin=$("newPin").value;
+  const confirmPin=$("confirmPin").value;
+  const error=$("lockSettingsError");
+
+  try{
+    if(exists&&!await verifyPin(current)){
+      error.textContent="Current PIN is incorrect.";
+      $("currentPin").focus();
+      return;
+    }
+    if(!/^\d{4,6}$/.test(pin)){
+      error.textContent="PIN must contain 4–6 digits.";
+      return;
+    }
+    if(pin!==confirmPin){
+      error.textContent="PINs do not match.";
+      $("confirmPin").focus();
+      return;
+    }
+    await createPinRecord(pin);
+    $("lockSettingsDialog").close();
+    toast(exists?"App Lock PIN changed.":"App Lock enabled.");
+    if(!exists)lockApp();
+  }catch(err){
+    console.error(err);
+    error.textContent=err.message||"Could not save PIN.";
+  }
+});
+
+$("disableLockButton").addEventListener("click",async()=>{
+  const current=$("currentPin").value;
+  const error=$("lockSettingsError");
+  try{
+    if(!await verifyPin(current)){
+      error.textContent="Enter your correct current PIN first.";
+      $("currentPin").focus();
+      return;
+    }
+    if(!confirm("Disable App Lock? The app will no longer ask for a PIN."))return;
+    localStorage.removeItem(PIN_KEY);
+    $("lockSettingsDialog").close();
+    unlockApp();
+    toast("App Lock disabled.");
+  }catch(err){
+    error.textContent=err.message||"Could not disable App Lock.";
+  }
+});
+
+$("unlockForm").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const pin=$("unlockPin").value;
+  const error=$("unlockError");
+  if(!/^\d{4,6}$/.test(pin)){
+    error.textContent="Enter your 4–6 digit PIN.";
+    return;
+  }
+  try{
+    if(await verifyPin(pin)){
+      unlockApp();
+    }else{
+      error.textContent="Incorrect PIN. Try again.";
+      $("unlockPin").value="";
+      $("unlockPin").focus();
+    }
+  }catch(err){
+    error.textContent=err.message||"Could not verify PIN.";
+  }
+});
 
 function openDB(){
   return new Promise((resolve,reject)=>{
@@ -519,6 +715,11 @@ async function openAlbum(id){
 }
 
 document.addEventListener("click",async e=>{
+  if(appLocked){
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    return;
+  }
   const b=e.target.closest("button");
   if(!b)return;
 
@@ -540,34 +741,18 @@ document.addEventListener("click",async e=>{
       location.href="./photo-editor.html?edit="+encodeURIComponent(b.dataset.edit);
       return;
     }
-
     if(b.dataset.editVideo){
       location.href="./video-editor.html?edit="+encodeURIComponent(b.dataset.editVideo);
       return;
     }
+    if(b.id==="toolEdit"){location.href="./photo-editor.html";return}
+    if(b.id==="toolVideo"){location.href="./video-editor.html";return}
+    if(b.id==="toolPdf"){location.href="./pdf-tool.html";return}
+    if(b.id==="toolQr"){location.href="./qr-tool.html";return}
+    if(b.id==="toolBackup"){location.href="./backup-tool.html";return}
 
-    if(b.id==="toolEdit"){
-      location.href="./photo-editor.html";
-      return;
-    }
-
-    if(b.id==="toolVideo"){
-      location.href="./video-editor.html";
-      return;
-    }
-
-    if(b.id==="toolPdf"){
-      location.href="./pdf-tool.html";
-      return;
-    }
-
-    if(b.id==="toolQr"){
-      location.href="./qr-tool.html";
-      return;
-    }
-
-    if(b.id==="toolBackup"){
-      location.href="./backup-tool.html";
+    if(b.id==="toolLock"){
+      openLockSettings();
       return;
     }
 
@@ -636,10 +821,6 @@ document.addEventListener("click",async e=>{
       await showPage("gallery");
       toast("Choose Share on a media item.");
     }
-
-    if(b.id==="toolLock"){
-      toast("App Lock is not implemented in this version yet.");
-    }
   }catch(err){
     console.error(err);
     toast("Something went wrong: "+(err.message||""));
@@ -682,6 +863,9 @@ window.addEventListener("pagehide",()=>{
 });
 
 async function init(){
+  // Lock immediately on each fresh page load when a PIN is configured.
+  if(readPinRecord())lockApp();
+
   try{
     db=await openDB();
     await refresh();

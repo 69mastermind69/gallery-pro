@@ -1,0 +1,254 @@
+
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#090d1c">
+<title>QR Code Generator | Gallery Pro</title>
+<link rel="manifest" href="./manifest.json">
+<style>
+:root{color-scheme:dark;--bg:#090d1c;--panel:#11182b;--border:#293451;--text:#f4f6ff;--muted:#9aa8c7;--accent:#8564ff}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:radial-gradient(ellipse at top,#17234a,var(--bg) 60%);color:var(--text);font-family:system-ui,Arial,sans-serif}
+.app{max-width:850px;margin:auto;padding:18px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:22px}
+h1{font-size:clamp(22px,4vw,30px);margin:0}
+h2{font-size:19px}
+.muted{color:var(--muted);font-size:13px;line-height:1.6}
+.panel{padding:18px;margin-bottom:16px;background:var(--panel);border:1px solid var(--border);border-radius:18px}
+button,input,textarea,select{font:inherit}
+button{padding:11px 14px;border:1px solid var(--border);border-radius:11px;background:#18213a;color:var(--text);cursor:pointer}
+button:hover{border-color:var(--accent)}
+button:disabled{opacity:.5;cursor:not-allowed}
+.primary{background:linear-gradient(110deg,#6653ed,#904dff);border-color:transparent}
+.field{width:100%;padding:12px;margin:7px 0 13px;border:1px solid var(--border);border-radius:11px;background:#0b1224;color:white}
+textarea.field{resize:vertical;min-height:120px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+label{font-size:13px}
+.toolbar{display:flex;flex-wrap:wrap;gap:9px}
+.toolbar button{flex:1}
+#qrOutput{min-height:250px;display:flex;align-items:center;justify-content:center;padding:18px;background:#0b1224;border:1px dashed #394563;border-radius:14px;overflow:auto}
+#qrOutput canvas,#qrOutput img{max-width:100%;height:auto!important;image-rendering:pixelated}
+.empty{text-align:center;color:var(--muted);padding:30px 10px}
+.status{padding:12px;background:#101a32;border:1px solid #344165;border-radius:11px;font-size:13px;overflow-wrap:anywhere}
+footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
+@media(max-width:500px){.row{grid-template-columns:1fr}.app{padding:11px}}
+</style>
+</head>
+<body>
+<main class="app">
+<header>
+  <div>
+    <h1>▦ QR Code Generator</h1>
+    <div class="muted">Gallery Pro by MASTERMIND</div>
+  </div>
+  <button id="backBtn">← Back to Gallery</button>
+</header>
+
+<section class="panel">
+  <h2>১. কী দিয়ে QR Code বানাবে?</h2>
+  <label for="qrText">লেখা, ওয়েবসাইটের লিংক, ফোন নম্বর অথবা অন্য টেক্সট</label>
+  <textarea id="qrText" class="field" maxlength="2500" placeholder="এখানে টেক্সট বা লিংক লেখো..."></textarea>
+
+  <div class="row">
+    <div>
+      <label for="qrSize">QR Code-এর সাইজ</label>
+      <select id="qrSize" class="field">
+        <option value="200">200 × 200</option>
+        <option value="300" selected>300 × 300</option>
+        <option value="500">500 × 500</option>
+        <option value="800">800 × 800</option>
+      </select>
+    </div>
+    <div>
+      <label for="qrLevel">Error correction</label>
+      <select id="qrLevel" class="field">
+        <option value="L">Low — ছোট QR</option>
+        <option value="M" selected>Medium — সাধারণ ব্যবহার</option>
+        <option value="Q">Quartile — বেশি সহনশীল</option>
+        <option value="H">High — সর্বোচ্চ সহনশীল</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <button id="generateBtn" class="primary">✨ Generate QR Code</button>
+    <button id="clearBtn">Clear</button>
+  </div>
+  <p class="muted">টিপ: URL হলে https:// সহ সম্পূর্ণ লিংক দাও। QR স্ক্যান করলে ডিভাইস সেই টেক্সট বা লিংক দেখাবে।</p>
+</section>
+
+<section class="panel">
+  <h2>২. তোমার QR Code</h2>
+  <div id="qrOutput"><div class="empty">তোমার QR Code এখানে দেখা যাবে।</div></div>
+  <div id="status" class="status" style="margin-top:12px">প্রথমে কিছু টেক্সট লিখে Generate চাপো।</div>
+  <div class="toolbar" style="margin-top:12px">
+    <button id="downloadBtn" class="primary" disabled>⬇ Download PNG</button>
+    <button id="copyBtn" disabled>📋 Copy Text</button>
+  </div>
+</section>
+
+<footer>MASTERMIND · Gallery Pro</footer>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+"use strict";
+
+const $ = id => document.getElementById(id);
+let generatedText = "";
+let generated = false;
+
+function setStatus(text) {
+  $("status").textContent = text;
+}
+
+function clearOutput() {
+  $("qrOutput").replaceChildren();
+  const message = document.createElement("div");
+  message.className = "empty";
+  message.textContent = "তোমার QR Code এখানে দেখা যাবে।";
+  $("qrOutput").appendChild(message);
+  generatedText = "";
+  generated = false;
+  $("downloadBtn").disabled = true;
+  $("copyBtn").disabled = true;
+}
+
+function generateQR() {
+  const text = $("qrText").value.trim();
+  if (!text) {
+    setStatus("আগে কিছু টেক্সট বা লিংক লেখো।");
+    $("qrText").focus();
+    return;
+  }
+
+  if (text.length > 2500) {
+    setStatus("টেক্সট অনেক বড়। ছোট করে আবার চেষ্টা করো।");
+    return;
+  }
+
+  if (typeof window.QRCode !== "function") {
+    setStatus("QR লাইব্রেরি লোড হয়নি। ইন্টারনেট চালু করে পেজটি আবার খোলো।");
+    return;
+  }
+
+  const size = Number($("qrSize").value);
+  const levelMap = {
+    L: QRCode.CorrectLevel.L,
+    M: QRCode.CorrectLevel.M,
+    Q: QRCode.CorrectLevel.Q,
+    H: QRCode.CorrectLevel.H
+  };
+
+  $("qrOutput").replaceChildren();
+  generated = false;
+  $("downloadBtn").disabled = true;
+  $("copyBtn").disabled = true;
+  setStatus("QR Code তৈরি হচ্ছে…");
+
+  try {
+    new QRCode($("qrOutput"), {
+      text,
+      width: size,
+      height: size,
+      colorDark: "#000000",
+      colorLight: "#ffffff",
+      correctLevel: levelMap[$("qrLevel").value]
+    });
+
+    generatedText = text;
+
+    // QRCode.js draws asynchronously in some browser versions.
+    setTimeout(() => {
+      const canvas = $("qrOutput").querySelector("canvas");
+      const image = $("qrOutput").querySelector("img");
+
+      if (canvas && canvas.width > 0) {
+        generated = true;
+      } else if (image && image.complete && image.naturalWidth > 0) {
+        generated = true;
+      } else {
+        setStatus("QR তৈরি নিশ্চিত করা যায়নি। ছোট টেক্সট দিয়ে আবার চেষ্টা করো।");
+        return;
+      }
+
+      $("downloadBtn").disabled = false;
+      $("copyBtn").disabled = false;
+      setStatus("QR Code তৈরি হয়েছে! PNG ডাউনলোড করতে পারো।");
+    }, 250);
+  } catch (error) {
+    console.error(error);
+    setStatus("QR তৈরি করা যায়নি। টেক্সট ছোট করে আবার চেষ্টা করো।");
+  }
+}
+
+function downloadQR() {
+  if (!generated) return;
+
+  const canvas = $("qrOutput").querySelector("canvas");
+  const image = $("qrOutput").querySelector("img");
+  let url;
+
+  if (canvas && canvas.width > 0) {
+    url = canvas.toDataURL("image/png");
+  } else if (image && image.naturalWidth > 0) {
+    const c = document.createElement("canvas");
+    c.width = image.naturalWidth;
+    c.height = image.naturalHeight;
+    const ctx = c.getContext("2d");
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, c.width, c.height);
+    ctx.drawImage(image, 0, 0);
+    url = c.toDataURL("image/png");
+  } else {
+    setStatus("ডাউনলোডের জন্য QR ছবি পাওয়া যায়নি।");
+    return;
+  }
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "Gallery-Pro-QR.png";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setStatus("PNG ডাউনলোড শুরু হয়েছে। Downloads ফোল্ডার দেখো।");
+}
+
+async function copyText() {
+  if (!generated || !generatedText) return;
+  try {
+    await navigator.clipboard.writeText(generatedText);
+    setStatus("টেক্সট ক্লিপবোর্ডে কপি হয়েছে।");
+  } catch {
+    const area = $("qrText");
+    area.focus();
+    area.select();
+    const ok = document.execCommand("copy");
+    setStatus(ok ? "টেক্সট কপি হয়েছে।" : "কপি করা যায়নি; টেক্সটটি নিজে কপি করো।");
+  }
+}
+
+$("generateBtn").addEventListener("click", generateQR);
+$("downloadBtn").addEventListener("click", downloadQR);
+$("copyBtn").addEventListener("click", copyText);
+
+$("clearBtn").addEventListener("click", () => {
+  $("qrText").value = "";
+  clearOutput();
+  setStatus("পরিষ্কার করা হয়েছে। নতুন টেক্সট লেখো।");
+});
+
+$("backBtn").addEventListener("click", () => {
+  location.href = "./";
+});
+
+$("qrText").addEventListener("keydown", event => {
+  if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+    generateQR();
+  }
+});
+</script>
+</body>
+</html>

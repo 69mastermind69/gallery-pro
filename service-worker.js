@@ -1,11 +1,17 @@
 
 "use strict";
 
-const CACHE_NAME = "mastermind-gallery-v1";
+const CACHE_NAME = "mastermind-gallery-v2";
+
 const APP_FILES = [
   "./",
   "./index.html",
-  "./manifest.json"
+  "./manifest.json",
+  "./qr-tool.html",
+  "./pdf-tool.html",
+  "./backup-tool.html",
+  "./photo-editor.html",
+  "./video-editor.html"
 ];
 
 self.addEventListener("install", event => {
@@ -21,7 +27,10 @@ self.addEventListener("activate", event => {
     caches.keys()
       .then(names => Promise.all(
         names
-          .filter(name => name.startsWith("mastermind-gallery-") && name !== CACHE_NAME)
+          .filter(name =>
+            name.startsWith("mastermind-gallery-") &&
+            name !== CACHE_NAME
+          )
           .map(name => caches.delete(name))
       ))
       .then(() => self.clients.claim())
@@ -34,43 +43,129 @@ self.addEventListener("fetch", event => {
   if (request.method !== "GET") return;
 
   const url = new URL(request.url);
+  const sameOrigin = url.origin === self.location.origin;
 
-  // Only handle same-origin requests for this app.
-  if (url.origin !== self.location.origin) return;
+  /*
+   * Third-party JavaScript libraries:
+   * Once loaded online, keep a copy in Cache Storage.
+   * This includes the QR and PDF libraries used by the app.
+   */
+  if (!sameOrigin) {
+    if (request.destination !== "script") return;
 
-  // Use network first for page navigation, with offline fallback.
-  if (request.mode === "navigate") {
-    event.respondWith(
-      fetch(request)
-        .then(response => {
-          if (response.ok) {
-            const copy = response.clone();
-            caches.open(CACHE_NAME).then(cache => cache.put("./index.html", copy));
+    event.respondWith((async () => {
+      const cache = await caches.open(CACHE_NAME);
+      const cached = await cache.match(request);
+
+      if (cached) return cached;
+
+      try {
+        const response = await fetch(request);
+
+        if (response.ok || response.type === "opaque") {
+          try {
+            await cache.put(request, response.clone());
+          } catch (error) {
+            console.warn("Could not cache external script:", error);
           }
-          return response;
-        })
-        .catch(async () => {
-          const cache = await caches.open(CACHE_NAME);
-          return (await cache.match(request)) ||
-            (await cache.match("./index.html")) ||
-            Response.error();
-        })
-    );
+        }
+
+        return response;
+      } catch (error) {
+        return new Response(
+          "This library has not been cached yet. Connect to the internet and open this tool once.",
+          {
+            status: 503,
+            headers: { "Content-Type": "text/plain; charset=utf-8" }
+          }
+        );
+      }
+    })());
+
     return;
   }
 
-  // Use cached files first for app resources.
-  event.respondWith(
-    caches.match(request).then(cached => {
-      if (cached) return cached;
+  /*
+   * Page navigation:
+   * Try the network first to get updates, then use the offline cache.
+   */
+  if (request.mode === "navigate") {
+    event.respondWith((async () => {
+      const cache = await caches.open(CACHE_NAME);
 
-      return fetch(request).then(response => {
-        if (response.ok && response.type === "basic") {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
+      try {
+        const response = await fetch(request);
+
+        if (response.ok) {
+          try {
+            await cache.put(request, response.clone());
+          } catch (error) {
+            console.warn("Could not cache page:", error);
+          }
         }
+
         return response;
+      } catch (error) {
+        const cachedPage = await cache.match(request, {
+          ignoreSearch: true
+        });
+
+        if (cachedPage) return cachedPage;
+
+        const path = url.pathname;
+        const knownFile = APP_FILES.find(file => {
+          if (file === "./") return false;
+          return path.endsWith(file.slice(1));
+        });
+
+        if (knownFile) {
+          const knownCached = await cache.match(knownFile);
+          if (knownCached) return knownCached;
+        }
+
+        const home = await cache.match("./index.html");
+        if (home) return home;
+
+        return new Response(
+          "Gallery Pro is offline and this page has not been cached yet. Open it once while online.",
+          {
+            status: 503,
+            headers: { "Content-Type": "text/plain; charset=utf-8" }
+          }
+        );
+      }
+    })());
+
+    return;
+  }
+
+  /*
+   * Same-origin files:
+   * Cache first for speed and offline use; fetch and cache if missing.
+   */
+  event.respondWith((async () => {
+    const cache = await caches.open(CACHE_NAME);
+    const cached = await cache.match(request);
+
+    if (cached) return cached;
+
+    try {
+      const response = await fetch(request);
+
+      if (response.ok && response.type === "basic") {
+        try {
+          await cache.put(request, response.clone());
+        } catch (error) {
+          console.warn("Could not cache resource:", error);
+        }
+      }
+
+      return response;
+    } catch (error) {
+      return new Response("Resource unavailable offline.", {
+        status: 503,
+        headers: { "Content-Type": "text/plain; charset=utf-8" }
       });
-    })
-  );
+    }
+  })());
 });

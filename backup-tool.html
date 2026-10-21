@@ -1,0 +1,364 @@
+
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#090d1c">
+<title>Backup & Restore | Gallery Pro</title>
+<style>
+:root{color-scheme:dark;--bg:#090d1c;--panel:#11182b;--border:#293451;--text:#f4f6ff;--muted:#9aa8c7;--accent:#8564ff}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:radial-gradient(ellipse at top,#17234a,var(--bg) 60%);color:var(--text);font-family:system-ui,Arial,sans-serif}
+.app{max-width:800px;margin:auto;padding:18px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:22px}
+h1{font-size:clamp(22px,4vw,30px);margin:0}
+h2{font-size:19px}
+.muted{color:var(--muted);font-size:13px;line-height:1.65}
+.panel{padding:18px;margin-bottom:16px;background:var(--panel);border:1px solid var(--border);border-radius:18px}
+button,input{font:inherit}
+button{padding:11px 14px;border:1px solid var(--border);border-radius:11px;background:#18213a;color:var(--text);cursor:pointer}
+button:hover{border-color:var(--accent)}
+button:disabled{opacity:.5;cursor:not-allowed}
+.primary{background:linear-gradient(110deg,#6653ed,#904dff);border-color:transparent}
+.danger{background:#542237;border-color:#87334e}
+.toolbar{display:flex;flex-wrap:wrap;gap:9px}
+.toolbar button{flex:1;min-width:140px}
+.status{padding:12px;background:#101a32;border:1px solid #344165;border-radius:11px;font-size:13px;overflow-wrap:anywhere;white-space:pre-wrap}
+.progress{height:8px;border-radius:20px;background:#252e46;overflow:hidden;margin:12px 0}
+.progress div{height:100%;width:0;background:linear-gradient(90deg,#6653ed,#39d7e8);transition:width .15s}
+.warning{border-left:3px solid #f0b84b;padding:10px 12px;background:#302817;border-radius:8px;font-size:13px;line-height:1.6}
+footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
+input[type=file]{display:none}
+</style>
+</head>
+<body>
+<main class="app">
+<header>
+  <div>
+    <h1>💾 Backup & Restore</h1>
+    <div class="muted">Gallery Pro by MASTERMIND</div>
+  </div>
+  <button id="backBtn">← Back to Gallery</button>
+</header>
+
+<section class="panel">
+  <h2>📦 Create Backup</h2>
+  <p class="muted">তোমার Gallery-র ছবি, ভিডিও এবং অ্যালবামের তথ্য একটি JSON ফাইলে সংরক্ষণ করো। Trash-এ থাকা মিডিয়াও ব্যাকআপে অন্তর্ভুক্ত হবে।</p>
+  <div class="toolbar">
+    <button id="backupBtn" class="primary">⬇ Create & Download Backup</button>
+  </div>
+  <div class="progress"><div id="progressBar"></div></div>
+  <div id="backupStatus" class="status" role="status" aria-live="polite">ব্যাকআপ তৈরি করতে বোতাম চাপো।</div>
+</section>
+
+<section class="panel">
+  <h2>♻ Restore Backup</h2>
+  <p class="muted">আগে তৈরি করা Gallery Pro backup (.json) ফাইল বেছে নিয়ে Restore করো। বর্তমান মিডিয়া মুছে যাবে না।</p>
+  <div class="warning">Restore করলে ব্যাকআপের আইটেমগুলো বর্তমান Gallery-তে যোগ হবে। একই ব্যাকআপ বারবার Restore করলে একই মিডিয়ার একাধিক কপি তৈরি হতে পারে। Restore-এর আগে বর্তমান Gallery-র Backup করে রাখো।</div>
+  <div class="toolbar" style="margin-top:14px">
+    <button id="chooseBtn" class="primary">Choose Backup File</button>
+    <button id="restoreBtn" disabled>Restore Selected Backup</button>
+  </div>
+  <input id="backupFile" type="file" accept=".json,application/json">
+  <div class="progress"><div id="restoreProgress"></div></div>
+  <div id="restoreStatus" class="status" role="status" aria-live="polite">এখনও কোনো ব্যাকআপ ফাইল নির্বাচন করা হয়নি।</div>
+</section>
+
+<section class="panel">
+  <h2>ℹ️ গুরুত্বপূর্ণ তথ্য</h2>
+  <p class="muted">• ব্যাকআপ ফাইলে মিডিয়ার আসল ডেটা থাকবে, তাই ভিডিও থাকলে ফাইলটি অনেক বড় হতে পারে।</p>
+  <p class="muted">• ব্যাকআপটি নিরাপদ জায়গায় রাখো। এই ফাইল যার কাছে থাকবে, সে এর ভেতরের ছবি ও ভিডিও পুনরুদ্ধার করতে পারবে।</p>
+  <p class="muted">• ব্যাকআপ ফাইল অন্য ডিভাইসে Restore করলেও সেটি সেই ডিভাইসের Gallery Pro browser storage-এ যোগ হবে; ফোনের native Gallery-তে সরাসরি নয়।</p>
+</section>
+<footer>Gallery Pro · Local backup on your device</footer>
+</main>
+
+<script>
+"use strict";
+const $=id=>document.getElementById(id);
+const DB_NAME="MastermindGalleryDB";
+const DB_VERSION=1;
+let db=null,selectedBackup=null,busy=false;
+
+function setStatus(id,text){$(id).textContent=text}
+function setProgress(id,p){$(id).style.width=Math.max(0,Math.min(100,p))+"%"}
+
+function openDB(){
+  return new Promise((resolve,reject)=>{
+    const request=indexedDB.open(DB_NAME,DB_VERSION);
+    request.onupgradeneeded=()=>{
+      const d=request.result;
+      if(!d.objectStoreNames.contains("media")){
+        const s=d.createObjectStore("media",{keyPath:"id",autoIncrement:true});
+        s.createIndex("deleted","deleted",{unique:false});
+        s.createIndex("createdAt","createdAt",{unique:false});
+      }
+      if(!d.objectStoreNames.contains("albums")){
+        d.createObjectStore("albums",{keyPath:"id",autoIncrement:true});
+      }
+    };
+    request.onsuccess=()=>resolve(request.result);
+    request.onerror=()=>reject(request.error);
+  });
+}
+
+function getAll(name){
+  return new Promise((resolve,reject)=>{
+    const r=db.transaction(name,"readonly").objectStore(name).getAll();
+    r.onsuccess=()=>resolve(r.result||[]);
+    r.onerror=()=>reject(r.error);
+  });
+}
+
+function addOne(name,value){
+  return new Promise((resolve,reject)=>{
+    const r=db.transaction(name,"readwrite").objectStore(name).add(value);
+    r.onsuccess=()=>resolve(r.result);
+    r.onerror=()=>reject(r.error);
+  });
+}
+
+function updateOne(name,value){
+  return new Promise((resolve,reject)=>{
+    const r=db.transaction(name,"readwrite").objectStore(name).put(value);
+    r.onsuccess=()=>resolve(r.result);
+    r.onerror=()=>reject(r.error);
+  });
+}
+
+function blobToBase64(blob){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onload=()=>{
+      const result=String(reader.result||"");
+      const comma=result.indexOf(",");
+      resolve(comma>=0?result.slice(comma+1):"");
+    };
+    reader.onerror=()=>reject(reader.error||new Error("Could not read media."));
+    reader.readAsDataURL(blob);
+  });
+}
+
+function base64ToBlob(base64,mime){
+  const binary=atob(base64);
+  const chunks=[];
+  const chunkSize=1024*512;
+  for(let i=0;i<binary.length;i+=chunkSize){
+    const part=binary.slice(i,i+chunkSize);
+    const bytes=new Uint8Array(part.length);
+    for(let j=0;j<part.length;j++)bytes[j]=part.charCodeAt(j);
+    chunks.push(bytes);
+  }
+  return new Blob(chunks,{type:mime||"application/octet-stream"});
+}
+
+function downloadFile(blob,name){
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;
+  a.download=name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),30000);
+}
+
+function setBusy(value){
+  busy=value;
+  $("backupBtn").disabled=value;
+  $("chooseBtn").disabled=value;
+  $("restoreBtn").disabled=value||!selectedBackup;
+}
+
+async function createBackup(){
+  if(busy)return;
+  setBusy(true);
+  setProgress("progressBar",0);
+  try{
+    setStatus("backupStatus","Gallery database পড়া হচ্ছে…");
+    const [media,albums]=await Promise.all([getAll("media"),getAll("albums")]);
+    const output=[];
+    let done=0;
+
+    for(const item of media){
+      if(!(item.blob instanceof Blob))throw new Error("একটি মিডিয়ার ডেটা পড়া যায়নি: "+(item.name||"Unknown"));
+      output.push({
+        name:item.name||"media",
+        type:item.type||"image",
+        mime:item.mime||item.blob.type||"application/octet-stream",
+        size:item.size||item.blob.size,
+        createdAt:item.createdAt||Date.now(),
+        deleted:!!item.deleted,
+        albumId:item.albumId??null,
+        data:await blobToBase64(item.blob)
+      });
+      done++;
+      setProgress("progressBar",media.length?done/media.length*85:85);
+      setStatus("backupStatus","মিডিয়া প্রস্তুত হচ্ছে… "+done+" / "+media.length);
+      await new Promise(r=>setTimeout(r,0));
+    }
+
+    const backup={
+      format:"GalleryProBackup",
+      version:1,
+      app:"Gallery Pro by MASTERMIND",
+      createdAt:new Date().toISOString(),
+      albums:albums.map(a=>({id:a.id,name:a.name,createdAt:a.createdAt||Date.now()})),
+      media:output
+    };
+
+    const blob=new Blob([JSON.stringify(backup)],{type:"application/json"});
+    const stamp=new Date().toISOString().replace(/[:.]/g,"-");
+    downloadFile(blob,"Gallery-Pro-Backup-"+stamp+".json");
+    setProgress("progressBar",100);
+    setStatus("backupStatus","ব্যাকআপ তৈরি হয়েছে!\nমিডিয়া: "+media.length+"\nঅ্যালবাম: "+albums.length+"\nফাইলের সাইজ: "+formatSize(blob.size)+"\nDownloads ফোল্ডার দেখো।");
+  }catch(error){
+    console.error(error);
+    setStatus("backupStatus","ব্যাকআপ তৈরি করা যায়নি: "+(error.message||"Unknown error")+"\nডিভাইসে জায়গা আছে কি না দেখো।");
+  }finally{
+    setBusy(false);
+  }
+}
+
+function formatSize(bytes){
+  if(bytes<1024)return bytes+" B";
+  if(bytes<1048576)return(bytes/1024).toFixed(1)+" KB";
+  if(bytes<1073741824)return(bytes/1048576).toFixed(1)+" MB";
+  return(bytes/1073741824).toFixed(2)+" GB";
+}
+
+function validateBackup(data){
+  if(!data||data.format!=="GalleryProBackup"||data.version!==1||
+     !Array.isArray(data.media)||!Array.isArray(data.albums)){
+    throw new Error("এটি সঠিক Gallery Pro Backup ফাইল নয় বা এর version সমর্থিত নয়।");
+  }
+  if(data.media.length>100000||data.albums.length>10000){
+    throw new Error("ফাইলে অস্বাভাবিক সংখ্যক আইটেম রয়েছে।");
+  }
+  for(const item of data.media){
+    if(!item||typeof item.name!=="string"||
+       typeof item.data!=="string"||typeof item.type!=="string"){
+      throw new Error("ব্যাকআপের মিডিয়া তথ্য অসম্পূর্ণ বা নষ্ট।");
+    }
+    if(!["image","video"].includes(item.type)){
+      throw new Error("ব্যাকআপে অসমর্থিত মিডিয়া টাইপ রয়েছে।");
+    }
+  }
+  for(const album of data.albums){
+    if(!album||typeof album.name!=="string"){
+      throw new Error("ব্যাকআপের অ্যালবাম তথ্য অসম্পূর্ণ।");
+    }
+  }
+  return true;
+}
+
+async function chooseBackup(file){
+  selectedBackup=null;
+  $("restoreBtn").disabled=true;
+  if(!file){
+    setStatus("restoreStatus","কোনো ফাইল নির্বাচন করা হয়নি।");
+    return;
+  }
+  if(file.size>2*1024*1024*1024){
+    setStatus("restoreStatus","ফাইলটি 2 GB-এর বেশি। এই টুলের মাধ্যমে এটি Restore করা যাবে না।");
+    return;
+  }
+  try{
+    setStatus("restoreStatus","ব্যাকআপ ফাইল পরীক্ষা করা হচ্ছে…");
+    const text=await file.text();
+    const data=JSON.parse(text);
+    validateBackup(data);
+    selectedBackup=data;
+    $("restoreBtn").disabled=busy;
+    setStatus("restoreStatus","ব্যাকআপ ফাইল প্রস্তুত।\nমিডিয়া: "+data.media.length+"\nঅ্যালবাম: "+data.albums.length+"\nফাইলের সাইজ: "+formatSize(file.size)+"\nব্যাকআপের তারিখ: "+(data.createdAt||"Unknown"));
+  }catch(error){
+    selectedBackup=null;
+    $("restoreBtn").disabled=true;
+    setStatus("restoreStatus","ফাইল পড়া যায়নি: "+(error.message||"Invalid backup"));
+  }
+}
+
+async function restoreBackup(){
+  if(busy||!selectedBackup)return;
+  if(!confirm("ব্যাকআপের "+selectedBackup.media.length+"টি মিডিয়া এবং "+selectedBackup.albums.length+"টি অ্যালবাম বর্তমান Gallery-তে যোগ হবে। বর্তমান আইটেম মুছে যাবে না। চালিয়ে যাবে?"))return;
+
+  setBusy(true);
+  setProgress("restoreProgress",0);
+  let restoredMedia=0,restoredAlbums=0,failed=0;
+
+  try{
+    const currentAlbums=await getAll("albums");
+    const albumMap=new Map();
+    const existingNames=new Set(currentAlbums.map(a=>a.name.toLowerCase()));
+
+    for(const oldAlbum of selectedBackup.albums){
+      let name=oldAlbum.name.trim()||"Restored Album";
+      if(existingNames.has(name.toLowerCase())){
+        let suffix=2;
+        while(existingNames.has((name+" ("+suffix+")").toLowerCase()))suffix++;
+        name=name+" ("+suffix+")";
+      }
+      existingNames.add(name.toLowerCase());
+      const newId=await addOne("albums",{name,createdAt:oldAlbum.createdAt||Date.now()});
+      albumMap.set(String(oldAlbum.id),newId);
+      restoredAlbums++;
+    }
+
+    const total=selectedBackup.media.length;
+    for(let i=0;i<total;i++){
+      const item=selectedBackup.media[i];
+      try{
+        const blob=base64ToBlob(item.data,item.mime);
+        const albumId=item.albumId==null?null:(albumMap.get(String(item.albumId))??null);
+        const record={
+          name:item.name,
+          type:item.type,
+          mime:item.mime||blob.type,
+          blob,
+          size:blob.size,
+          createdAt:Number(item.createdAt)||Date.now(),
+          deleted:!!item.deleted,
+          albumId
+        };
+        await addOne("media",record);
+        restoredMedia++;
+      }catch(error){
+        console.error("Could not restore media item",item.name,error);
+        failed++;
+      }
+      setProgress("restoreProgress",total?(i+1)/total*100:100);
+      setStatus("restoreStatus","Restore চলছে… "+(i+1)+" / "+total+"\nসফল মিডিয়া: "+restoredMedia+"\nব্যর্থ: "+failed);
+      await new Promise(r=>setTimeout(r,0));
+    }
+
+    setProgress("restoreProgress",100);
+    setStatus("restoreStatus","Restore সম্পন্ন!\nসফল মিডিয়া: "+restoredMedia+"\nঅ্যালবাম: "+restoredAlbums+"\nব্যর্থ মিডিয়া: "+failed+"\nGallery খুলে ফলাফল যাচাই করো।");
+  }catch(error){
+    console.error(error);
+    setStatus("restoreStatus","Restore সম্পূর্ণ হয়নি: "+(error.message||"Unknown error")+"\nআংশিক কিছু আইটেম যোগ হয়ে থাকতে পারে।");
+  }finally{
+    setBusy(false);
+  }
+}
+
+$("backupBtn").addEventListener("click",createBackup);
+$("chooseBtn").addEventListener("click",()=>$("backupFile").click());
+$("backupFile").addEventListener("change",async e=>{
+  await chooseBackup(e.target.files&&e.target.files[0]);
+});
+$("restoreBtn").addEventListener("click",restoreBackup);
+$("backBtn").addEventListener("click",()=>location.href="./");
+
+openDB().then(d=>{
+  db=d;
+  setStatus("backupStatus","Database প্রস্তুত। Backup তৈরি করতে পারো।");
+}).catch(error=>{
+  console.error(error);
+  $("backupBtn").disabled=true;
+  $("restoreBtn").disabled=true;
+  setStatus("backupStatus","Gallery database খোলা যায়নি। আগে Gallery Pro একবার খোলো, তারপর আবার চেষ্টা করো।");
+});
+</script>
+</body>
+</html>

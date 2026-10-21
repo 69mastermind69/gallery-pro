@@ -1,22 +1,30 @@
 
 "use strict";
 
-const CACHE_NAME = "mastermind-gallery-v2";
+const CACHE_VERSION = "mastermind-gallery-v2";
+const LIBRARY_CACHE = "mastermind-gallery-libraries-v1";
 
 const APP_FILES = [
   "./",
   "./index.html",
   "./manifest.json",
-  "./qr-tool.html",
-  "./pdf-tool.html",
-  "./backup-tool.html",
   "./photo-editor.html",
-  "./video-editor.html"
+  "./video-editor.html",
+  "./pdf-tool.html",
+  "./qr-tool.html",
+  "./backup-tool.html"
 ];
+
+const OFFLINE_LIBRARIES = [
+  "https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js",
+  "https://unpkg.com/jspdf@2.5.2/dist/jspdf.umd.min.js"
+];
+
+const LIBRARY_URLS = new Set(OFFLINE_LIBRARIES);
 
 self.addEventListener("install", event => {
   event.waitUntil(
-    caches.open(CACHE_NAME)
+    caches.open(CACHE_VERSION)
       .then(cache => cache.addAll(APP_FILES))
       .then(() => self.skipWaiting())
   );
@@ -29,7 +37,8 @@ self.addEventListener("activate", event => {
         names
           .filter(name =>
             name.startsWith("mastermind-gallery-") &&
-            name !== CACHE_NAME
+            name !== CACHE_VERSION &&
+            name !== LIBRARY_CACHE
           )
           .map(name => caches.delete(name))
       ))
@@ -37,70 +46,82 @@ self.addEventListener("activate", event => {
   );
 });
 
+async function cacheLibrary(request) {
+  const cache = await caches.open(LIBRARY_CACHE);
+  const cached = await cache.match(request);
+
+  if (cached) {
+    return cached;
+  }
+
+  const response = await fetch(request);
+
+  if (response.ok || response.type === "opaque") {
+    try {
+      await cache.put(request, response.clone());
+    } catch (error) {
+      console.warn("Library cache failed:", error);
+    }
+  }
+
+  return response;
+}
+
 self.addEventListener("fetch", event => {
   const request = event.request;
 
-  if (request.method !== "GET") return;
+  if (request.method !== "GET") {
+    return;
+  }
 
   const url = new URL(request.url);
-  const sameOrigin = url.origin === self.location.origin;
 
-  /*
-   * Third-party JavaScript libraries:
-   * Once loaded online, keep a copy in Cache Storage.
-   * This includes the QR and PDF libraries used by the app.
-   */
-  if (!sameOrigin) {
-    if (request.destination !== "script") return;
+  // Cache selected third-party libraries for later offline use.
+  if (LIBRARY_URLS.has(url.href)) {
+    event.respondWith(
+      cacheLibrary(request).catch(async () => {
+        const cache = await caches.open(LIBRARY_CACHE);
+        const cached = await cache.match(request);
 
-    event.respondWith((async () => {
-      const cache = await caches.open(CACHE_NAME);
-      const cached = await cache.match(request);
-
-      if (cached) return cached;
-
-      try {
-        const response = await fetch(request);
-
-        if (response.ok || response.type === "opaque") {
-          try {
-            await cache.put(request, response.clone());
-          } catch (error) {
-            console.warn("Could not cache external script:", error);
-          }
+        if (cached) {
+          return cached;
         }
 
-        return response;
-      } catch (error) {
         return new Response(
-          "This library has not been cached yet. Connect to the internet and open this tool once.",
+          "এই লাইব্রেরি এখনো অফলাইনে সংরক্ষিত হয়নি। ইন্টারনেট চালু করে টুলটি আবার খোলো।",
           {
             status: 503,
             headers: { "Content-Type": "text/plain; charset=utf-8" }
           }
         );
-      }
-    })());
-
+      })
+    );
     return;
   }
 
-  /*
-   * Page navigation:
-   * Try the network first to get updates, then use the offline cache.
-   */
+  // Do not cache unrelated external websites.
+  if (url.origin !== self.location.origin) {
+    return;
+  }
+
+  // Navigation: try the network, then use the cached page.
   if (request.mode === "navigate") {
     event.respondWith((async () => {
-      const cache = await caches.open(CACHE_NAME);
+      const cache = await caches.open(CACHE_VERSION);
 
       try {
         const response = await fetch(request);
 
         if (response.ok) {
-          try {
+          const path = url.pathname;
+          const isAppPage =
+            path.endsWith("/") ||
+            APP_FILES.some(file =>
+              new URL(file, self.registration.scope).pathname === path
+            );
+
+          if (isAppPage) {
             await cache.put(request, response.clone());
-          } catch (error) {
-            console.warn("Could not cache page:", error);
           }
         }
 
@@ -110,24 +131,26 @@ self.addEventListener("fetch", event => {
           ignoreSearch: true
         });
 
-        if (cachedPage) return cachedPage;
-
-        const path = url.pathname;
-        const knownFile = APP_FILES.find(file => {
-          if (file === "./") return false;
-          return path.endsWith(file.slice(1));
-        });
-
-        if (knownFile) {
-          const knownCached = await cache.match(knownFile);
-          if (knownCached) return knownCached;
+        if (cachedPage) {
+          return cachedPage;
         }
 
-        const home = await cache.match("./index.html");
-        if (home) return home;
+        const relativePath = url.pathname.startsWith(
+          new URL(self.registration.scope).pathname
+        )
+          ? "./" + url.pathname.slice(
+              new URL(self.registration.scope).pathname.length
+            )
+          : "./index.html";
+
+        const fallback = await cache.match(relativePath);
+
+        if (fallback) {
+          return fallback;
+        }
 
         return new Response(
-          "Gallery Pro is offline and this page has not been cached yet. Open it once while online.",
+          "অফলাইন পৃষ্ঠা পাওয়া যায়নি। ইন্টারনেট চালু করে অ্যাপটি একবার খোলো।",
           {
             status: 503,
             headers: { "Content-Type": "text/plain; charset=utf-8" }
@@ -135,37 +158,24 @@ self.addEventListener("fetch", event => {
         );
       }
     })());
-
     return;
   }
 
-  /*
-   * Same-origin files:
-   * Cache first for speed and offline use; fetch and cache if missing.
-   */
+  // Other same-origin resources: cache first, then network.
   event.respondWith((async () => {
-    const cache = await caches.open(CACHE_NAME);
+    const cache = await caches.open(CACHE_VERSION);
     const cached = await cache.match(request);
 
-    if (cached) return cached;
-
-    try {
-      const response = await fetch(request);
-
-      if (response.ok && response.type === "basic") {
-        try {
-          await cache.put(request, response.clone());
-        } catch (error) {
-          console.warn("Could not cache resource:", error);
-        }
-      }
-
-      return response;
-    } catch (error) {
-      return new Response("Resource unavailable offline.", {
-        status: 503,
-        headers: { "Content-Type": "text/plain; charset=utf-8" }
-      });
+    if (cached) {
+      return cached;
     }
+
+    const response = await fetch(request);
+
+    if (response.ok && response.type === "basic") {
+      await cache.put(request, response.clone());
+    }
+
+    return response;
   })());
 });

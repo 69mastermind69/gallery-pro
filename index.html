@@ -1,79 +1,691 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#090d1c">
-<meta name="description" content="Gallery Pro by MASTERMIND — your private offline media gallery."><title>Gallery Pro by MASTERMIND</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#090d1c">
+<meta name="description" content="Gallery Pro by MASTERMIND — your private offline media gallery.">
+<title>Gallery Pro by MASTERMIND</title>
 <link rel="manifest" href="./manifest.json">
+
 <style>
 :root{color-scheme:dark;--bg:#090d1c;--panel:#11182b;--panel2:#18213a;--text:#f4f6ff;--muted:#9aa8c7;--accent:#8564ff;--cyan:#39d7e8;--border:#293451;--danger:#ff5e7e}
-*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#17234a 0,var(--bg) 55%);color:var(--text);font-family:system-ui,-apple-system,sans-serif;min-height:100vh}button,input,select{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}.app{max-width:1440px;margin:auto;padding:20px}header{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:24px}.brand{display:flex;align-items:center;gap:12px}.logo{width:54px;height:54px;border-radius:17px;display:grid;place-items:center;font-size:29px;background:linear-gradient(135deg,#5f8cff,#a24dff);box-shadow:0 8px 30px #7657ff55}h1{margin:0;font-size:clamp(21px,4vw,31px)}.subtitle,.muted{color:var(--muted);font-size:13px}.developer{border:1px solid #5d4a9c;color:#d8ccff;background:#211a3c;border-radius:12px;padding:11px 15px}.layout{display:grid;grid-template-columns:220px minmax(0,1fr);gap:20px}aside,.panel{background:#11182bef;border:1px solid var(--border);border-radius:20px;padding:16px}nav{display:grid;gap:8px}.nav-btn,.btn{border:1px solid transparent;border-radius:12px;padding:12px;color:var(--text);background:var(--panel2);transition:transform .18s,background .18s,border-color .18s}.nav-btn{text-align:left}.nav-btn:hover,.btn:hover{transform:translateY(-2px);border-color:#7865dc}.nav-btn.active,.primary{background:linear-gradient(110deg,#6653ed,#904dff)}.secondary{background:#172440;border-color:var(--border)}.danger{background:#542237;border-color:#87334e}.welcome{padding:24px;border-radius:18px;margin-bottom:18px;background:linear-gradient(115deg,#292052,#142f51 75%,#123d4c);border:1px solid #3d477c}.welcome h2{margin:0 0 8px;font-size:26px}.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:20px}.stat{background:var(--panel);border:1px solid var(--border);padding:17px;border-radius:16px}.stat .number{font-size:26px;font-weight:750;margin-top:7px}.actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:20px}.action{text-align:left;min-height:88px}.action .emoji{display:block;font-size:24px;margin-bottom:7px}.section-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:20px 0 14px}h2,h3{margin-top:0}.search{width:100%;padding:13px;border-radius:12px;border:1px solid var(--border);background:#0b1224;color:white}.media-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:12px}.media-card{min-width:0;overflow:hidden;background:var(--panel);border:1px solid var(--border);border-radius:14px}.media-preview{width:100%;aspect-ratio:1;object-fit:cover;display:block;background:#080c18}.media-info{padding:10px}.media-name{font-size:13px;overflow-wrap:anywhere;margin-bottom:8px}.card-actions{display:flex;gap:6px;flex-wrap:wrap}.small{font-size:12px;padding:7px 9px;border-radius:9px}.empty{padding:38px 15px;text-align:center;color:var(--muted);border:1px dashed #394563;border-radius:16px}.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}.toolbar .btn{flex:1;min-width:125px}.field{width:100%;background:#0b1224;color:white;border:1px solid var(--border);border-radius:11px;padding:12px;margin:6px 0 12px}.camera-box{width:100%;background:#05070e;border-radius:14px;overflow:hidden}#cameraVideo{display:block;width:100%;max-height:65vh;object-fit:contain}.hidden{display:none!important}footer{text-align:center;color:var(--muted);padding:28px 8px 8px;font-size:12px}dialog{width:min(560px,calc(100% - 24px));max-height:85vh;overflow:auto;color:var(--text);background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:20px}dialog::backdrop{background:#000b;backdrop-filter:blur(5px)}#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#263351;padding:12px 18px;border-radius:12px;box-shadow:0 5px 25px #0008;z-index:10;max-width:90%}
-@media(max-width:850px){.layout{grid-template-columns:1fr}aside{padding:10px}nav{display:flex;overflow-x:auto}.nav-btn{white-space:nowrap;padding:10px 13px}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.actions{grid-template-columns:repeat(2,minmax(0,1fr))}.app{padding:12px}}@media(max-width:380px){.media-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(ellipse at top,#17234a 0,var(--bg) 55%);color:var(--text);font-family:system-ui,-apple-system,sans-serif;min-height:100vh}
+button,input,select{font:inherit}
+button{cursor:pointer}
+button:focus-visible,input:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
+.app{max-width:1440px;margin:auto;padding:20px}
+header{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:24px}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:54px;height:54px;border-radius:17px;display:grid;place-items:center;font-size:29px;background:linear-gradient(135deg,#5f8cff,#a24dff);box-shadow:0 8px 30px #7657ff55}
+h1{margin:0;font-size:clamp(21px,4vw,31px)}
+.subtitle,.muted{color:var(--muted);font-size:13px}
+.developer{border:1px solid #5d4a9c;color:#d8ccff;background:#211a3c;border-radius:12px;padding:11px 15px}
+.layout{display:grid;grid-template-columns:220px minmax(0,1fr);gap:20px}
+aside,.panel{background:#11182bef;border:1px solid var(--border);border-radius:20px;padding:16px}
+nav{display:grid;gap:8px}
+.nav-btn,.btn{border:1px solid transparent;border-radius:12px;padding:12px;color:var(--text);background:var(--panel2);transition:transform .18s,background .18s,border-color .18s}
+.nav-btn{text-align:left}
+.nav-btn:hover,.btn:hover{transform:translateY(-2px);border-color:#7865dc}
+.nav-btn.active,.primary{background:linear-gradient(110deg,#6653ed,#904dff)}
+.secondary{background:#172440;border-color:var(--border)}
+.danger{background:#542237;border-color:#87334e}
+.welcome{padding:24px;border-radius:18px;margin-bottom:18px;background:linear-gradient(115deg,#292052,#142f51 75%,#123d4c);border:1px solid #3d477c}
+.welcome h2{margin:0 0 8px;font-size:26px}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:20px}
+.stat{background:var(--panel);border:1px solid var(--border);padding:17px;border-radius:16px}
+.stat .number{font-size:26px;font-weight:750;margin-top:7px}
+.actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:20px}
+.action{text-align:left;min-height:88px}
+.action .emoji{display:block;font-size:24px;margin-bottom:7px}
+.section-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:20px 0 14px}
+h2,h3{margin-top:0}
+.search{width:100%;padding:13px;border-radius:12px;border:1px solid var(--border);background:#0b1224;color:white}
+.media-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:12px}
+.media-card{min-width:0;overflow:hidden;background:var(--panel);border:1px solid var(--border);border-radius:14px}
+.media-preview{width:100%;aspect-ratio:1;object-fit:cover;display:block;background:#080c18}
+.media-info{padding:10px}
+.media-name{font-size:13px;overflow-wrap:anywhere;margin-bottom:8px}
+.card-actions{display:flex;gap:6px;flex-wrap:wrap}
+.small{font-size:12px;padding:7px 9px;border-radius:9px}
+.empty{padding:38px 15px;text-align:center;color:var(--muted);border:1px dashed #394563;border-radius:16px}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}
+.toolbar .btn{flex:1;min-width:125px}
+.field{width:100%;background:#0b1224;color:white;border:1px solid var(--border);border-radius:11px;padding:12px;margin:6px 0 12px}
+.camera-box{width:100%;background:#05070e;border-radius:14px;overflow:hidden}
+#cameraVideo{display:block;width:100%;max-height:65vh;object-fit:contain}
+.hidden{display:none!important}
+footer{text-align:center;color:var(--muted);padding:28px 8px 8px;font-size:12px}
+dialog{width:min(560px,calc(100% - 24px));max-height:85vh;overflow:auto;color:var(--text);background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:20px}
+dialog::backdrop{background:#000b;backdrop-filter:blur(5px)}
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#263351;padding:12px 18px;border-radius:12px;box-shadow:0 5px 25px #0008;z-index:10;max-width:90%}
+@media(max-width:850px){.layout{grid-template-columns:1fr}aside{padding:10px}nav{display:flex;overflow-x:auto}.nav-btn{white-space:nowrap;padding:10px 13px}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.actions{grid-template-columns:repeat(2,minmax(0,1fr))}.app{padding:12px}}
+@media(max-width:380px){.media-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
 </head>
-<body><div class="app">
-<header><div class="brand"><div class="logo">▧</div><div><h1>Gallery Pro</h1><div class="subtitle">Your Photos · Your Videos · Your World</div></div></div><button class="developer" id="developerBtn">✦ Developer</button></header>
-<div class="layout"><aside><div class="muted" style="padding:5px 8px 14px">MAIN MENU</div><nav id="navigation">
-<button class="nav-btn active" data-page="home">⌂ &nbsp; Home</button><button class="nav-btn" data-page="gallery">▧ &nbsp; Gallery</button><button class="nav-btn" data-page="camera">◎ &nbsp; Camera</button><button class="nav-btn" data-page="albums">▣ &nbsp; Albums</button><button class="nav-btn" data-page="trash">♲ &nbsp; Trash</button><button class="nav-btn" data-page="tools">✧ &nbsp; Tools</button></nav><div class="panel" style="margin-top:18px"><div class="muted">DEVELOPER</div><strong>MASTERMIND</strong><p class="muted">Free · Offline-first</p></div></aside>
+
+<body>
+<div class="app">
+<header>
+  <div class="brand">
+    <div class="logo">▧</div>
+    <div><h1>Gallery Pro</h1><div class="subtitle">Your Photos · Your Videos · Your World</div></div>
+  </div>
+  <button class="developer" id="developerBtn">✦ Developer</button>
+</header>
+
+<div class="layout">
+<aside>
+  <div class="muted" style="padding:5px 8px 14px">MAIN MENU</div>
+  <nav id="navigation">
+    <button class="nav-btn active" data-page="home">⌂ &nbsp; Home</button>
+    <button class="nav-btn" data-page="gallery">▧ &nbsp; Gallery</button>
+    <button class="nav-btn" data-page="camera">◎ &nbsp; Camera</button>
+    <button class="nav-btn" data-page="albums">▣ &nbsp; Albums</button>
+    <button class="nav-btn" data-page="trash">♲ &nbsp; Trash</button>
+    <button class="nav-btn" data-page="tools">✧ &nbsp; Tools</button>
+  </nav>
+  <div class="panel" style="margin-top:18px">
+    <div class="muted">DEVELOPER</div>
+    <strong>MASTERMIND</strong>
+    <p class="muted">Free · Offline-first</p>
+  </div>
+</aside>
+
 <main>
-<section id="page-home" class="page"><div class="welcome"><div class="muted">WELCOME TO YOUR PERSONAL MEDIA SPACE</div><h2>Everything in one place.</h2><p class="muted">Capture, organize and manage your memories.</p><button class="btn primary" data-go="camera">◎ Open Camera</button> <button class="btn secondary" data-go="gallery">Explore Gallery</button></div>
-<div class="stats"><div class="stat"><div class="muted">Photos</div><div class="number" id="photoCount">0</div></div><div class="stat"><div class="muted">Videos</div><div class="number" id="videoCount">0</div></div><div class="stat"><div class="muted">Albums</div><div class="number" id="albumCount">0</div></div><div class="stat"><div class="muted">In Trash</div><div class="number" id="trashCount">0</div></div></div>
-<h3>Quick Actions</h3><div class="actions"><button class="btn action" data-go="camera"><span class="emoji">📸</span>Camera</button><button class="btn action" id="importBtn"><span class="emoji">🖼️</span>Import Media</button><button class="btn action" data-go="albums"><span class="emoji">📁</span>Create Album</button><button class="btn action" data-go="tools"><span class="emoji">🧰</span>Media Tools</button><button class="btn action" data-go="gallery"><span class="emoji">🎞️</span>All Media</button><button class="btn action" data-go="trash"><span class="emoji">🗑️</span>Trash & Restore</button></div><h3>Recent Media</h3><div class="media-grid" id="recentGrid"></div></section>
-<section id="page-gallery" class="page hidden"><h2>My Gallery</h2><p class="muted">Imported or captured media is stored in this browser's local database.</p><input class="search" id="gallerySearch" placeholder="Search media by name..." aria-label="Search media"><div class="toolbar"><button class="btn primary" id="galleryImport">＋ Import Photos / Videos</button><select class="field" style="width:auto;min-width:140px;margin:0" id="typeFilter"><option value="all">All media</option><option value="image">Photos</option><option value="video">Videos</option></select></div><div id="galleryGrid" class="media-grid"></div></section>
-<section id="page-camera" class="page hidden"><h2>Camera Studio</h2><p class="muted">Camera access requires HTTPS or localhost and your permission.</p><div class="camera-box"><video id="cameraVideo" autoplay playsinline muted></video></div><div class="toolbar"><button class="btn primary" id="startCamera">Start Camera</button><button class="btn secondary" id="takePhoto" disabled>◉ Take Photo</button><button class="btn secondary" id="recordVideo" disabled>● Record Video</button><button class="btn secondary" id="stopCamera">Stop Camera</button></div><div id="cameraStatus" class="muted">Camera is off.</div><p class="muted">Captures stay in this app. Export to save a copy to your device.</p></section>
-<section id="page-albums" class="page hidden"><h2>Albums & Folders</h2><form id="albumForm"><label for="albumName">Album name</label><input class="field" id="albumName" maxlength="80" placeholder="e.g. Family Memories" required><button class="btn primary" type="submit">＋ Create Album</button></form><div id="albumList" style="display:grid;gap:10px;margin-top:20px"></div></section>
-<section id="page-trash" class="page hidden"><h2>Trash & Restore</h2><p class="muted">Items remain here until permanently deleted.</p><div class="toolbar"><button class="btn secondary" id="restoreAll">Restore All</button><button class="btn danger" id="emptyTrash">Empty Trash Permanently</button></div><div id="trashGrid" class="media-grid"></div></section>
-<section id="page-tools" class="page hidden"><h2>Media Tools</h2><div class="actions"><button class="btn action" id="toolPdf"><span class="emoji">📄</span>Image to PDF</button><button class="btn action" id="toolQr"><span class="emoji">▦</span>QR Code</button><button class="btn action" id="toolShare"><span class="emoji">↗</span>Share Media</button><button class="btn action" id="toolEdit"><span class="emoji">🎨</span>Photo Editor</button><button class="btn action" id="toolVideo"><span class="emoji">🎬</span>Video Editor</button><button class="btn action" id="toolLock"><span class="emoji">🔒</span>App Lock Setup</button></div><div class="panel"><h3>About Gallery Pro</h3><p class="muted">Developer: MASTERMIND</p><p class="muted">Photo Editor can edit gallery images and save the result back into this app. Other advanced tools may require separate modules.</p></div></section>
-</main></div><footer>Gallery Pro by MASTERMIND · Your memories, your control.</footer></div>
-<input id="filePicker" type="file" accept="image/*,video/*" multiple hidden><canvas id="captureCanvas" class="hidden"></canvas><div id="toast" class="hidden" role="status" aria-live="polite"></div>
-<dialog id="developerDialog"><h2>✦ Developer</h2><div class="welcome"><h3>MASTERMIND</h3><p>Creator of Gallery Pro</p></div><p class="muted">A free, offline-first personal gallery project.</p><button class="btn primary" data-close="developerDialog">Close</button></dialog>
-<dialog id="albumDialog"><h2 id="albumDialogTitle">Album</h2><div id="albumMediaGrid" class="media-grid"></div><button class="btn secondary" data-close="albumDialog" style="margin-top:15px">Close</button></dialog>
+<section id="page-home" class="page">
+  <div class="welcome">
+    <div class="muted">WELCOME TO YOUR PERSONAL MEDIA SPACE</div>
+    <h2>Everything in one place.</h2>
+    <p class="muted">Capture, organize and manage your memories.</p>
+    <button class="btn primary" data-go="camera">◎ Open Camera</button>
+    <button class="btn secondary" data-go="gallery">Explore Gallery</button>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="muted">Photos</div><div class="number" id="photoCount">0</div></div>
+    <div class="stat"><div class="muted">Videos</div><div class="number" id="videoCount">0</div></div>
+    <div class="stat"><div class="muted">Albums</div><div class="number" id="albumCount">0</div></div>
+    <div class="stat"><div class="muted">In Trash</div><div class="number" id="trashCount">0</div></div>
+  </div>
+
+  <h3>Quick Actions</h3>
+  <div class="actions">
+    <button class="btn action" data-go="camera"><span class="emoji">📸</span>Camera</button>
+    <button class="btn action" id="importBtn"><span class="emoji">🖼️</span>Import Media</button>
+    <button class="btn action" data-go="albums"><span class="emoji">📁</span>Create Album</button>
+    <button class="btn action" data-go="tools"><span class="emoji">🧰</span>Media Tools</button>
+    <button class="btn action" data-go="gallery"><span class="emoji">🎞️</span>All Media</button>
+    <button class="btn action" data-go="trash"><span class="emoji">🗑️</span>Trash & Restore</button>
+  </div>
+
+  <h3>Recent Media</h3>
+  <div class="media-grid" id="recentGrid"></div>
+</section>
+
+<section id="page-gallery" class="page hidden">
+  <h2>My Gallery</h2>
+  <p class="muted">Imported or captured media is stored in this browser's local database.</p>
+  <input class="search" id="gallerySearch" placeholder="Search media by name..." aria-label="Search media">
+  <div class="toolbar">
+    <button class="btn primary" id="galleryImport">＋ Import Photos / Videos</button>
+    <select class="field" style="width:auto;min-width:140px;margin:0" id="typeFilter">
+      <option value="all">All media</option><option value="image">Photos</option><option value="video">Videos</option>
+    </select>
+  </div>
+  <div id="galleryGrid" class="media-grid"></div>
+</section>
+
+<section id="page-camera" class="page hidden">
+  <h2>Camera Studio</h2>
+  <p class="muted">Camera access requires HTTPS or localhost and your permission.</p>
+  <div class="camera-box"><video id="cameraVideo" autoplay playsinline muted></video></div>
+  <div class="toolbar">
+    <button class="btn primary" id="startCamera">Start Camera</button>
+    <button class="btn secondary" id="takePhoto" disabled>◉ Take Photo</button>
+    <button class="btn secondary" id="recordVideo" disabled>● Record Video</button>
+    <button class="btn secondary" id="stopCamera">Stop Camera</button>
+  </div>
+  <div id="cameraStatus" class="muted">Camera is off.</div>
+  <p class="muted">Captures stay in this app. Export to save a copy to your device.</p>
+</section>
+
+<section id="page-albums" class="page hidden">
+  <h2>Albums & Folders</h2>
+  <form id="albumForm">
+    <label for="albumName">Album name</label>
+    <input class="field" id="albumName" maxlength="80" placeholder="e.g. Family Memories" required>
+    <button class="btn primary" type="submit">＋ Create Album</button>
+  </form>
+  <div id="albumList" style="display:grid;gap:10px;margin-top:20px"></div>
+</section>
+
+<section id="page-trash" class="page hidden">
+  <h2>Trash & Restore</h2>
+  <p class="muted">Items remain here until permanently deleted.</p>
+  <div class="toolbar">
+    <button class="btn secondary" id="restoreAll">Restore All</button>
+    <button class="btn danger" id="emptyTrash">Empty Trash Permanently</button>
+  </div>
+  <div id="trashGrid" class="media-grid"></div>
+</section>
+
+<section id="page-tools" class="page hidden">
+  <h2>Media Tools</h2>
+  <div class="actions">
+    <button class="btn action" id="toolPdf"><span class="emoji">📄</span>Image to PDF</button>
+    <button class="btn action" id="toolQr"><span class="emoji">▦</span>QR Code</button>
+    <button class="btn action" id="toolShare"><span class="emoji">↗</span>Share Media</button>
+    <button class="btn action" id="toolEdit"><span class="emoji">🎨</span>Photo Editor</button>
+    <button class="btn action" id="toolVideo"><span class="emoji">🎬</span>Professional Video Editor</button>
+    <button class="btn action" id="toolLock"><span class="emoji">🔒</span>App Lock Setup</button>
+  </div>
+  <div class="panel">
+    <h3>About Gallery Pro</h3>
+    <p class="muted">Developer: MASTERMIND</p>
+    <p class="muted">Photo Editor can edit gallery images and save the result back into this app. Video Editor exports rendered videos when supported by the browser.</p>
+  </div>
+</section>
+</main>
+</div>
+
+<footer>Gallery Pro by MASTERMIND · Your memories, your control.</footer>
+</div>
+
+<input id="filePicker" type="file" accept="image/*,video/*" multiple hidden>
+<canvas id="captureCanvas" class="hidden"></canvas>
+<div id="toast" class="hidden" role="status" aria-live="polite"></div>
+
+<dialog id="developerDialog">
+  <h2>✦ Developer</h2>
+  <div class="welcome"><h3>MASTERMIND</h3><p>Creator of Gallery Pro</p></div>
+  <p class="muted">A free, offline-first personal gallery project.</p>
+  <button class="btn primary" data-close="developerDialog">Close</button>
+</dialog>
+
+<dialog id="albumDialog">
+  <h2 id="albumDialogTitle">Album</h2>
+  <div id="albumMediaGrid" class="media-grid"></div>
+  <button class="btn secondary" data-close="albumDialog" style="margin-top:15px">Close</button>
+</dialog>
+
 <script>
 (()=>{"use strict";
-const $=id=>document.getElementById(id),DB_NAME="MastermindGalleryDB",DB_VERSION=1;let db,cameraStream=null,recorder=null,recordedChunks=[],recording=false,toastTimer;const objectUrls=new Set();
-function toast(message){$("toast").textContent=message;$("toast").classList.remove("hidden");clearTimeout(toastTimer);toastTimer=setTimeout(()=>$("toast").classList.add("hidden"),3200)}
-function openDB(){return new Promise((resolve,reject)=>{const r=indexedDB.open(DB_NAME,DB_VERSION);r.onupgradeneeded=()=>{const d=r.result;if(!d.objectStoreNames.contains("media")){const s=d.createObjectStore("media",{keyPath:"id",autoIncrement:true});s.createIndex("deleted","deleted",{unique:false});s.createIndex("createdAt","createdAt",{unique:false})}if(!d.objectStoreNames.contains("albums"))d.createObjectStore("albums",{keyPath:"id",autoIncrement:true})};r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})}
-function store(n,m="readonly"){return db.transaction(n,m).objectStore(n)}
-function getAll(n){return new Promise((res,rej)=>{const r=store(n).getAll();r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
-function saveRecord(n,v){return new Promise((res,rej)=>{const r=store(n,"readwrite").put(v);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
-function addRecord(n,v){return new Promise((res,rej)=>{const r=store(n,"readwrite").add(v);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
-function deleteRecord(n,id){return new Promise((res,rej)=>{const r=store(n,"readwrite").delete(id);r.onsuccess=()=>res();r.onerror=()=>rej(r.error)})}
-async function addMedia(file,albumId=null){if(!file.type.startsWith("image/")&&!file.type.startsWith("video/"))throw Error("Only image and video files are supported.");const type=file.type.startsWith("video/")?"video":"image";await addRecord("media",{name:file.name|| (type==="image"?"Photo":"Video"),type,mime:file.type,blob:file,size:file.size,createdAt:Date.now(),deleted:false,albumId})}
-function safeText(v){return String(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
-function makeUrl(blob){const u=URL.createObjectURL(blob);objectUrls.add(u);return u}
-function releaseUrls(){for(const u of objectUrls)URL.revokeObjectURL(u);objectUrls.clear()}
-function formatSize(b=0){if(b<1024)return b+" B";if(b<1048576)return(b/1024).toFixed(1)+" KB";if(b<1073741824)return(b/1048576).toFixed(1)+" MB";return(b/1073741824).toFixed(2)+" GB"}
-function mediaCard(item,trash=false){const url=makeUrl(item.blob),preview=item.type==="video"?`<video class="media-preview" src="${url}" muted playsinline preload="metadata"></video>`:`<img class="media-preview" src="${url}" alt="${safeText(item.name)}" loading="lazy">`;return `<article class="media-card">${preview}<div class="media-info"><div class="media-name">${safeText(item.name)}</div><div class="muted">${item.type==="video"?"Video":"Photo"} · ${formatSize(item.size)}</div><div class="card-actions" style="margin-top:9px">${trash?`<button class="btn small primary" data-restore="${item.id}">Restore</button><button class="btn small danger" data-permanent="${item.id}">Delete</button>`:`${item.type==="image"?`<button class="btn small primary" data-edit="${item.id}">Edit</button>`:""}<button class="btn small secondary" data-export="${item.id}">Export</button><button class="btn small secondary" data-share="${item.id}">Share</button><button class="btn small danger" data-trash="${item.id}">Trash</button>`}</div></div></article>`}
-function renderGrid(el,items,empty,trash=false){el.innerHTML=items.length?items.map(x=>mediaCard(x,trash)).join(""):`<div class="empty" style="grid-column:1/-1">${empty}</div>`}
-function filtered(items){const q=$("gallerySearch").value.trim().toLowerCase(),t=$("typeFilter").value;return items.filter(x=>x.name.toLowerCase().includes(q)&&(t==="all"||x.type===t))}
-async function refresh(){releaseUrls();const [all,albums]=await Promise.all([getAll("media"),getAll("albums")]);const active=all.filter(x=>!x.deleted).sort((a,b)=>b.createdAt-a.createdAt),trash=all.filter(x=>x.deleted).sort((a,b)=>b.createdAt-a.createdAt);$("photoCount").textContent=active.filter(x=>x.type==="image").length;$("videoCount").textContent=active.filter(x=>x.type==="video").length;$("albumCount").textContent=albums.length;$("trashCount").textContent=trash.length;renderGrid($("recentGrid"),active.slice(0,6),"Your recent photos and videos will appear here.");renderGrid($("trashGrid"),trash,"Your trash is empty.",true);renderGrid($("galleryGrid"),filtered(active),"No media yet. Import a photo or capture one using Camera.");$("albumList").innerHTML=albums.length?albums.map(a=>`<div class="panel" style="display:flex;align-items:center;justify-content:space-between;gap:12px"><div><strong>📁 ${safeText(a.name)}</strong><div class="muted">${active.filter(x=>x.albumId===a.id).length} items</div></div><div class="card-actions"><button class="btn small primary" data-open-album="${a.id}">Open</button><button class="btn small danger" data-delete-album="${a.id}">Delete</button></div></div>`).join(""):'<div class="empty">No albums yet. Create your first album above.</div>'}
-async function showPage(p){document.querySelectorAll(".page").forEach(e=>e.classList.add("hidden"));$("page-"+p).classList.remove("hidden");document.querySelectorAll(".nav-btn").forEach(b=>b.classList.toggle("active",b.dataset.page===p));if(p!=="camera")stopCamera();await refresh()}
-async function importFiles(files){let n=0;for(const f of files){try{await addMedia(f);n++}catch(e){toast(e.message||"Could not import file.")}}if(n)toast(n+" file(s) imported.");await refresh()}
-async function getItem(id){return(await getAll("media")).find(x=>x.id===Number(id))}
-async function exportItem(id){const x=await getItem(id);if(!x)return;const u=makeUrl(x.blob),a=document.createElement("a");a.href=u;a.download=x.name;document.body.appendChild(a);a.click();a.remove();toast("Export started. Check Downloads.")}
-async function shareItem(id){const x=await getItem(id);if(!x)return;const f=new File([x.blob],x.name,{type:x.mime});if(navigator.share&&navigator.canShare&&navigator.canShare({files:[f]})){try{await navigator.share({files:[f],title:x.name})}catch(e){if(e.name!=="AbortError")toast("Sharing was not completed.")}}else{await exportItem(id);toast("Attach the exported file in your messaging app.")}}
-async function startCamera(){if(!navigator.mediaDevices?.getUserMedia)return toast("Camera needs HTTPS or localhost.");try{stopCamera();cameraStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}},audio:false});$("cameraVideo").srcObject=cameraStream;$("takePhoto").disabled=false;$("recordVideo").disabled=false;$("cameraStatus").textContent="Camera is running."}catch(e){toast("Camera permission denied or unavailable.");$("cameraStatus").textContent=e.message}}
-function stopCamera(){if(cameraStream)cameraStream.getTracks().forEach(t=>t.stop());cameraStream=null;$("cameraVideo").srcObject=null;$("takePhoto").disabled=true;$("recordVideo").disabled=true;$("cameraStatus").textContent="Camera is off."}
-async function takePhoto(){const v=$("cameraVideo");if(!cameraStream||!v.videoWidth)return toast("Start the camera first.");const c=$("captureCanvas");c.width=v.videoWidth;c.height=v.videoHeight;c.getContext("2d").drawImage(v,0,0);c.toBlob(async b=>{if(!b)return toast("Capture failed.");await addMedia(new File([b],"photo-"+Date.now()+".jpg",{type:"image/jpeg"}));await refresh();toast("Photo saved in Gallery Pro.")},"image/jpeg",.94)}
-function toggleRecording(){if(!cameraStream)return toast("Start the camera first.");if(recording&&recorder){recorder.stop();return}if(!window.MediaRecorder)return toast("Recording is unsupported in this browser.");const mt=["video/webm;codecs=vp9,opus","video/webm","video/mp4"].find(t=>MediaRecorder.isTypeSupported(t));try{recorder=new MediaRecorder(cameraStream,mt?{mimeType:mt}:undefined);recordedChunks=[];recorder.ondataavailable=e=>{if(e.data.size)recordedChunks.push(e.data)};recorder.onstop=async()=>{const b=new Blob(recordedChunks,{type:recorder.mimeType||"video/webm"}),ext=b.type.includes("mp4")?"mp4":"webm";await addMedia(new File([b],"video-"+Date.now()+"."+ext,{type:b.type}));await refresh();recording=false;$("recordVideo").textContent="● Record Video";toast("Video saved in Gallery Pro.")};recorder.start();recording=true;$("recordVideo").textContent="■ Stop Recording"}catch(e){toast("Could not record video.")}}
-async function openAlbum(id){const a=(await getAll("albums")).find(x=>x.id===Number(id));if(!a)return;const items=(await getAll("media")).filter(x=>!x.deleted&&x.albumId===a.id);releaseUrls();$("albumDialogTitle").textContent=a.name;renderGrid($("albumMediaGrid"),items,"This album is empty.");$("albumDialog").showModal()}
-document.addEventListener("click",async e=>{const b=e.target.closest("button");if(!b)return;try{
-if(b.dataset.page)await showPage(b.dataset.page);if(b.dataset.go)await showPage(b.dataset.go);if(b.dataset.close)$(b.dataset.close).close();if(b.id==="developerBtn")$("developerDialog").showModal();if(["importBtn","galleryImport"].includes(b.id))$("filePicker").click();if(b.id==="startCamera")await startCamera();if(b.id==="stopCamera")stopCamera();if(b.id==="takePhoto")await takePhoto();if(b.id==="recordVideo")toggleRecording();
-if(b.dataset.edit)location.href="./photo-editor.html?edit="+encodeURIComponent(b.dataset.edit);if(b.id==="toolEdit")location.href="./photo-editor.html";
-if(b.dataset.export)await exportItem(b.dataset.export);if(b.dataset.share)await shareItem(b.dataset.share);
-if(b.dataset.trash){const x=await getItem(b.dataset.trash);if(x){x.deleted=true;await saveRecord("media",x);await refresh();toast("Moved to Trash.")}}
-if(b.dataset.restore){const x=await getItem(b.dataset.restore);if(x){x.deleted=false;await saveRecord("media",x);await refresh();toast("Restored.")}}
-if(b.dataset.permanent&&confirm("Permanently delete this item?")){await deleteRecord("media",Number(b.dataset.permanent));await refresh()}
-if(b.dataset.openAlbum)await openAlbum(b.dataset.openAlbum);
-if(b.dataset.deleteAlbum&&confirm("Delete this album? Media remains in Gallery.")){const id=Number(b.dataset.deleteAlbum);await deleteRecord("albums",id);for(const x of await getAll("media"))if(x.albumId===id){x.albumId=null;await saveRecord("media",x)}await refresh()}
-if(b.id==="restoreAll"){for(const x of await getAll("media"))if(x.deleted){x.deleted=false;await saveRecord("media",x)}await refresh();toast("All items restored.")}
-if(b.id==="emptyTrash"&&confirm("Permanently delete all items in Trash?")){for(const x of await getAll("media"))if(x.deleted)await deleteRecord("media",x.id);await refresh();toast("Trash emptied.")}
-if(b.id==="toolShare"){await showPage("gallery");toast("Choose Share on a media item.")}if(["toolPdf","toolQr","toolVideo","toolLock"].includes(b.id))toast("This tool is not implemented in this version yet.");
-}catch(err){console.error(err);toast("Something went wrong: "+(err.message||""))}});
-$("filePicker").addEventListener("change",async e=>{await importFiles(Array.from(e.target.files||[]));e.target.value=""});
-async function redrawGallery(){const all=(await getAll("media")).filter(x=>!x.deleted);releaseUrls();renderGrid($("galleryGrid"),filtered(all),"No matching media found.")}
-$("gallerySearch").addEventListener("input",redrawGallery);$("typeFilter").addEventListener("change",redrawGallery);
-$("albumForm").addEventListener("submit",async e=>{e.preventDefault();const name=$("albumName").value.trim();if(!name)return;const albums=await getAll("albums");if(albums.some(a=>a.name.toLowerCase()===name.toLowerCase()))return toast("Album name already exists.");await addRecord("albums",{name,createdAt:Date.now()});$("albumName").value="";await refresh();toast("Album created.")});
-window.addEventListener("pagehide",stopCamera);
-async function init(){try{db=await openDB();await refresh();const params=new URLSearchParams(location.search);if(params.get("edited")==="1")toast("Edited photo saved to Gallery Pro.");if("serviceWorker"in navigator&&location.protocol.startsWith("http"))navigator.serviceWorker.register("./service-worker.js").catch(console.warn)}catch(e){console.error(e);toast("Database could not be opened. Check browser storage settings.")}}init();
+
+const $=id=>document.getElementById(id);
+const DB_NAME="MastermindGalleryDB";
+const DB_VERSION=1;
+
+let db,cameraStream=null,recorder=null,recording=false,toastTimer;
+let recordedChunks=[];
+const objectUrls=new Set();
+
+function toast(message){
+  $("toast").textContent=message;
+  $("toast").classList.remove("hidden");
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>$("toast").classList.add("hidden"),3200);
+}
+
+function openDB(){
+  return new Promise((resolve,reject)=>{
+    const r=indexedDB.open(DB_NAME,DB_VERSION);
+    r.onupgradeneeded=()=>{
+      const d=r.result;
+      if(!d.objectStoreNames.contains("media")){
+        const s=d.createObjectStore("media",{keyPath:"id",autoIncrement:true});
+        s.createIndex("deleted","deleted",{unique:false});
+        s.createIndex("createdAt","createdAt",{unique:false});
+      }
+      if(!d.objectStoreNames.contains("albums")){
+        d.createObjectStore("albums",{keyPath:"id",autoIncrement:true});
+      }
+    };
+    r.onsuccess=()=>resolve(r.result);
+    r.onerror=()=>reject(r.error);
+  });
+}
+
+function store(n,m="readonly"){
+  return db.transaction(n,m).objectStore(n);
+}
+
+function getAll(n){
+  return new Promise((res,rej)=>{
+    const r=store(n).getAll();
+    r.onsuccess=()=>res(r.result||[]);
+    r.onerror=()=>rej(r.error);
+  });
+}
+
+function saveRecord(n,v){
+  return new Promise((res,rej)=>{
+    const r=store(n,"readwrite").put(v);
+    r.onsuccess=()=>res(r.result);
+    r.onerror=()=>rej(r.error);
+  });
+}
+
+function addRecord(n,v){
+  return new Promise((res,rej)=>{
+    const r=store(n,"readwrite").add(v);
+    r.onsuccess=()=>res(r.result);
+    r.onerror=()=>rej(r.error);
+  });
+}
+
+function deleteRecord(n,id){
+  return new Promise((res,rej)=>{
+    const r=store(n,"readwrite").delete(id);
+    r.onsuccess=()=>res();
+    r.onerror=()=>rej(r.error);
+  });
+}
+
+async function addMedia(file,albumId=null){
+  if(!file.type.startsWith("image/")&&!file.type.startsWith("video/")){
+    throw Error("Only image and video files are supported.");
+  }
+  const type=file.type.startsWith("video/")?"video":"image";
+  await addRecord("media",{
+    name:file.name||(type==="image"?"Photo":"Video"),
+    type,mime:file.type,blob:file,size:file.size,
+    createdAt:Date.now(),deleted:false,albumId
+  });
+}
+
+function safeText(v){
+  return String(v).replace(/[&<>"']/g,c=>({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[c]));
+}
+
+function makeUrl(blob){
+  const u=URL.createObjectURL(blob);
+  objectUrls.add(u);
+  return u;
+}
+
+function releaseUrls(){
+  for(const u of objectUrls)URL.revokeObjectURL(u);
+  objectUrls.clear();
+}
+
+function formatSize(b=0){
+  if(b<1024)return b+" B";
+  if(b<1048576)return(b/1024).toFixed(1)+" KB";
+  if(b<1073741824)return(b/1048576).toFixed(1)+" MB";
+  return(b/1073741824).toFixed(2)+" GB";
+}
+
+function mediaCard(item,trash=false){
+  const url=makeUrl(item.blob);
+  const preview=item.type==="video"
+    ?`<video class="media-preview" src="${url}" muted playsinline preload="metadata"></video>`
+    :`<img class="media-preview" src="${url}" alt="${safeText(item.name)}" loading="lazy">`;
+
+  const actions=trash
+    ?`<button class="btn small primary" data-restore="${item.id}">Restore</button>
+      <button class="btn small danger" data-permanent="${item.id}">Delete</button>`
+    :`${item.type==="image"
+        ?`<button class="btn small primary" data-edit="${item.id}">Edit Photo</button>`
+        :`<button class="btn small primary" data-edit-video="${item.id}">Edit Video</button>`}
+      <button class="btn small secondary" data-export="${item.id}">Export</button>
+      <button class="btn small secondary" data-share="${item.id}">Share</button>
+      <button class="btn small danger" data-trash="${item.id}">Trash</button>`;
+
+  return `<article class="media-card">${preview}
+    <div class="media-info">
+      <div class="media-name">${safeText(item.name)}</div>
+      <div class="muted">${item.type==="video"?"Video":"Photo"} · ${formatSize(item.size)}</div>
+      <div class="card-actions" style="margin-top:9px">${actions}</div>
+    </div>
+  </article>`;
+}
+
+function renderGrid(el,items,empty,trash=false){
+  el.innerHTML=items.length
+    ?items.map(x=>mediaCard(x,trash)).join("")
+    :`<div class="empty" style="grid-column:1/-1">${empty}</div>`;
+}
+
+function filtered(items){
+  const q=$("gallerySearch").value.trim().toLowerCase();
+  const t=$("typeFilter").value;
+  return items.filter(x=>
+    x.name.toLowerCase().includes(q)&&(t==="all"||x.type===t)
+  );
+}
+
+async function refresh(){
+  releaseUrls();
+  const [all,albums]=await Promise.all([getAll("media"),getAll("albums")]);
+  const active=all.filter(x=>!x.deleted).sort((a,b)=>b.createdAt-a.createdAt);
+  const trash=all.filter(x=>x.deleted).sort((a,b)=>b.createdAt-a.createdAt);
+
+  $("photoCount").textContent=active.filter(x=>x.type==="image").length;
+  $("videoCount").textContent=active.filter(x=>x.type==="video").length;
+  $("albumCount").textContent=albums.length;
+  $("trashCount").textContent=trash.length;
+
+  renderGrid($("recentGrid"),active.slice(0,6),"Your recent photos and videos will appear here.");
+  renderGrid($("trashGrid"),trash,"Your trash is empty.",true);
+  renderGrid($("galleryGrid"),filtered(active),"No media yet. Import a photo or capture one using Camera.");
+
+  $("albumList").innerHTML=albums.length
+    ?albums.map(a=>`<div class="panel" style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+      <div><strong>📁 ${safeText(a.name)}</strong>
+      <div class="muted">${active.filter(x=>x.albumId===a.id).length} items</div></div>
+      <div class="card-actions">
+        <button class="btn small primary" data-open-album="${a.id}">Open</button>
+        <button class="btn small danger" data-delete-album="${a.id}">Delete</button>
+      </div></div>`).join("")
+    :'<div class="empty">No albums yet. Create your first album above.</div>';
+}
+
+async function showPage(p){
+  document.querySelectorAll(".page").forEach(e=>e.classList.add("hidden"));
+  $("page-"+p).classList.remove("hidden");
+  document.querySelectorAll(".nav-btn").forEach(b=>
+    b.classList.toggle("active",b.dataset.page===p)
+  );
+  if(p!=="camera")stopCamera();
+  await refresh();
+}
+
+async function importFiles(files){
+  let n=0;
+  for(const f of files){
+    try{await addMedia(f);n++}
+    catch(e){toast(e.message||"Could not import file.")}
+  }
+  if(n)toast(n+" file(s) imported.");
+  await refresh();
+}
+
+async function getItem(id){
+  return(await getAll("media")).find(x=>x.id===Number(id));
+}
+
+async function exportItem(id){
+  const x=await getItem(id);
+  if(!x)return;
+  const u=makeUrl(x.blob);
+  const a=document.createElement("a");
+  a.href=u;
+  a.download=x.name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  toast("Export started. Check Downloads.");
+}
+
+async function shareItem(id){
+  const x=await getItem(id);
+  if(!x)return;
+  const f=new File([x.blob],x.name,{type:x.mime||x.blob.type});
+  if(navigator.share&&navigator.canShare&&navigator.canShare({files:[f]})){
+    try{await navigator.share({files:[f],title:x.name})}
+    catch(e){if(e.name!=="AbortError")toast("Sharing was not completed.")}
+  }else{
+    await exportItem(id);
+    toast("Attach the exported file in your messaging app.");
+  }
+}
+
+async function startCamera(){
+  if(!navigator.mediaDevices?.getUserMedia)return toast("Camera needs HTTPS or localhost.");
+  try{
+    stopCamera();
+    cameraStream=await navigator.mediaDevices.getUserMedia({
+      video:{facingMode:{ideal:"environment"}},audio:false
+    });
+    $("cameraVideo").srcObject=cameraStream;
+    $("takePhoto").disabled=false;
+    $("recordVideo").disabled=false;
+    $("cameraStatus").textContent="Camera is running.";
+  }catch(e){
+    toast("Camera permission denied or unavailable.");
+    $("cameraStatus").textContent=e.message;
+  }
+}
+
+function stopCamera(){
+  if(cameraStream)cameraStream.getTracks().forEach(t=>t.stop());
+  cameraStream=null;
+  $("cameraVideo").srcObject=null;
+  $("takePhoto").disabled=true;
+  $("recordVideo").disabled=true;
+  $("cameraStatus").textContent="Camera is off.";
+}
+
+async function takePhoto(){
+  const v=$("cameraVideo");
+  if(!cameraStream||!v.videoWidth)return toast("Start the camera first.");
+  const c=$("captureCanvas");
+  c.width=v.videoWidth;
+  c.height=v.videoHeight;
+  c.getContext("2d").drawImage(v,0,0);
+  c.toBlob(async b=>{
+    if(!b)return toast("Capture failed.");
+    try{
+      await addMedia(new File([b],"photo-"+Date.now()+".jpg",{type:"image/jpeg"}));
+      await refresh();
+      toast("Photo saved in Gallery Pro.");
+    }catch(e){toast("Could not save photo.");}
+  },"image/jpeg",.94);
+}
+
+function toggleRecording(){
+  if(!cameraStream)return toast("Start the camera first.");
+  if(recording&&recorder){recorder.stop();return}
+  if(!window.MediaRecorder)return toast("Recording is unsupported in this browser.");
+
+  const mt=["video/webm;codecs=vp9,opus","video/webm","video/mp4"]
+    .find(t=>MediaRecorder.isTypeSupported(t));
+
+  try{
+    recorder=new MediaRecorder(cameraStream,mt?{mimeType:mt}:undefined);
+    recordedChunks=[];
+    recorder.ondataavailable=e=>{if(e.data.size)recordedChunks.push(e.data)};
+    recorder.onstop=async()=>{
+      try{
+        const b=new Blob(recordedChunks,{type:recorder.mimeType||"video/webm"});
+        const ext=b.type.includes("mp4")?"mp4":"webm";
+        await addMedia(new File([b],"video-"+Date.now()+"."+ext,{type:b.type}));
+        await refresh();
+        toast("Video saved in Gallery Pro.");
+      }catch(e){toast("Could not save recording.");}
+      finally{
+        recording=false;
+        $("recordVideo").textContent="● Record Video";
+      }
+    };
+    recorder.start();
+    recording=true;
+    $("recordVideo").textContent="■ Stop Recording";
+  }catch(e){toast("Could not record video.");}
+}
+
+async function openAlbum(id){
+  const a=(await getAll("albums")).find(x=>x.id===Number(id));
+  if(!a)return;
+  const items=(await getAll("media")).filter(x=>!x.deleted&&x.albumId===a.id);
+  releaseUrls();
+  $("albumDialogTitle").textContent=a.name;
+  renderGrid($("albumMediaGrid"),items,"This album is empty.");
+  $("albumDialog").showModal();
+}
+
+document.addEventListener("click",async e=>{
+  const b=e.target.closest("button");
+  if(!b)return;
+
+  try{
+    if(b.dataset.page)await showPage(b.dataset.page);
+    if(b.dataset.go)await showPage(b.dataset.go);
+    if(b.dataset.close)$(b.dataset.close).close();
+
+    if(b.id==="developerBtn")$("developerDialog").showModal();
+
+    if(["importBtn","galleryImport"].includes(b.id))$("filePicker").click();
+
+    if(b.id==="startCamera")await startCamera();
+    if(b.id==="stopCamera")stopCamera();
+    if(b.id==="takePhoto")await takePhoto();
+    if(b.id==="recordVideo")toggleRecording();
+
+    if(b.dataset.edit){
+      location.href="./photo-editor.html?edit="+encodeURIComponent(b.dataset.edit);
+      return;
+    }
+
+    if(b.dataset.editVideo){
+      location.href="./video-editor.html?edit="+encodeURIComponent(b.dataset.editVideo);
+      return;
+    }
+
+    if(b.id==="toolEdit"){
+      location.href="./photo-editor.html";
+      return;
+    }
+
+    if(b.id==="toolVideo"){
+      location.href="./video-editor.html";
+      return;
+    }
+
+    if(b.dataset.export)await exportItem(b.dataset.export);
+    if(b.dataset.share)await shareItem(b.dataset.share);
+
+    if(b.dataset.trash){
+      const x=await getItem(b.dataset.trash);
+      if(x){
+        x.deleted=true;
+        await saveRecord("media",x);
+        await refresh();
+        toast("Moved to Trash.");
+      }
+    }
+
+    if(b.dataset.restore){
+      const x=await getItem(b.dataset.restore);
+      if(x){
+        x.deleted=false;
+        await saveRecord("media",x);
+        await refresh();
+        toast("Restored.");
+      }
+    }
+
+    if(b.dataset.permanent&&confirm("Permanently delete this item?")){
+      await deleteRecord("media",Number(b.dataset.permanent));
+      await refresh();
+    }
+
+    if(b.dataset.openAlbum)await openAlbum(b.dataset.openAlbum);
+
+    if(b.dataset.deleteAlbum&&confirm("Delete this album? Media remains in Gallery.")){
+      const id=Number(b.dataset.deleteAlbum);
+      await deleteRecord("albums",id);
+      for(const x of await getAll("media")){
+        if(x.albumId===id){
+          x.albumId=null;
+          await saveRecord("media",x);
+        }
+      }
+      await refresh();
+    }
+
+    if(b.id==="restoreAll"){
+      for(const x of await getAll("media")){
+        if(x.deleted){
+          x.deleted=false;
+          await saveRecord("media",x);
+        }
+      }
+      await refresh();
+      toast("All items restored.");
+    }
+
+    if(b.id==="emptyTrash"&&confirm("Permanently delete all items in Trash?")){
+      for(const x of await getAll("media")){
+        if(x.deleted)await deleteRecord("media",x.id);
+      }
+      await refresh();
+      toast("Trash emptied.");
+    }
+
+    if(b.id==="toolShare"){
+      await showPage("gallery");
+      toast("Choose Share on a media item.");
+    }
+
+    if(["toolPdf","toolQr","toolLock"].includes(b.id)){
+      toast("This tool is not implemented in this version yet.");
+    }
+  }catch(err){
+    console.error(err);
+    toast("Something went wrong: "+(err.message||""));
+  }
+});
+
+$("filePicker").addEventListener("change",async e=>{
+  await importFiles(Array.from(e.target.files||[]));
+  e.target.value="";
+});
+
+async function redrawGallery(){
+  const all=(await getAll("media")).filter(x=>!x.deleted);
+  releaseUrls();
+  renderGrid($("galleryGrid"),filtered(all),"No matching media found.");
+}
+
+$("gallerySearch").addEventListener("input",redrawGallery);
+$("typeFilter").addEventListener("change",redrawGallery);
+
+$("albumForm").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const name=$("albumName").value.trim();
+  if(!name)return;
+
+  const albums=await getAll("albums");
+  if(albums.some(a=>a.name.toLowerCase()===name.toLowerCase())){
+    return toast("Album name already exists.");
+  }
+
+  await addRecord("albums",{name,createdAt:Date.now()});
+  $("albumName").value="";
+  await refresh();
+  toast("Album created.");
+});
+
+window.addEventListener("pagehide",()=>{
+  stopCamera();
+  releaseUrls();
+});
+
+async function init(){
+  try{
+    db=await openDB();
+    await refresh();
+
+    const params=new URLSearchParams(location.search);
+    if(params.get("edited")==="1")toast("Edited photo saved to Gallery Pro.");
+
+    if("serviceWorker"in navigator&&location.protocol==="https:"){
+      navigator.serviceWorker.register("./service-worker.js").catch(console.warn);
+    }
+  }catch(e){
+    console.error(e);
+    toast("Database could not be opened. Check browser storage settings.");
+  }
+}
+
+init();
 })();
-</script></body></html>
+</script>
+</body>
+</html>
